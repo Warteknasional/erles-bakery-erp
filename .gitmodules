@@ -1,0 +1,6 @@
+[submodule "admin"]
+	path = admin
+	url = https://github.com/Warteknasional/erles-bakery-admin.git
+[submodule "public"]
+	path = public
+	url = https://github.com/Warteknasional/erles-bakery-publik.git
