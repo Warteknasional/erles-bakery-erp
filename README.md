@@ -57,18 +57,27 @@ git submodule update --init --recursive
 
 ### 2. Jalankan Aplikasi
 
+Cukup jalankan **satu perintah** berikut di terminal (berada di root proyek):
+
 ```bash
-./run.sh
+# Memberikan izin eksekusi jika script belum bisa dijalankan (opsional)
+chmod +x run.sh
+
+# Menjalankan script otomatis dengan mode default (dev)
+./run.sh dev
 ```
+*(ATAU sekadar menjalankan `./run.sh`, karena `dev` adalah mode default).*
 
-Script ini akan:
-1. ✅ Memeriksa Docker daemon
-2. ✅ Update git submodules
-3. ✅ Build & start 4 container (db, backend, admin, public)
-4. ✅ Menunggu database siap
-5. ✅ Menjalankan migrasi Laravel
+Script pintar `run.sh` ini bertindak sebagai **CLI task runner** dengan berbagai opsi yang memudahkan Anda:
 
-### 3. Akses Aplikasi
+| Opsi Perintah        | Penjelasan                                                               |
+|----------------------|--------------------------------------------------------------------------|
+| `./run.sh dev`       | (Default) Build & jalankan semua layanan, tunggu DB siap, dan migrasi. |
+| `./run.sh stop`      | Hentikan dan hapus semua container (setara dengan `docker compose down`).|
+| `./run.sh restart`   | Lakukan proses stop, lalu jalankan `dev` kembali.                        |
+| `./run.sh logs`      | Lihat log semua container (atau layanan spesifik, misal `./run.sh logs backend`). |
+| `./run.sh fresh`     | Refresh DB secara total (Drop seluruh tabel, migrasi ulang, dan jalankan seeder). |
+| `./run.sh help`      | Tampilkan menu bantuan ini di terminal Anda.                             |
 
 | Service          | URL                            |
 |------------------|--------------------------------|
