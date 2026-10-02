@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('gambar')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            $table->index('kategori');
+            $table->index('is_active');
         });
     }
 

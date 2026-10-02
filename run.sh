@@ -77,7 +77,8 @@ cmd_dev() {
     docker compose exec -T backend php artisan key:generate --force
   fi
   docker compose exec -T backend php artisan migrate --force
-  echo -e "${GREEN}✓ Migrations completed${NC}"
+  docker compose exec -T backend php artisan db:seed --force || true
+  echo -e "${GREEN}✓ Migrations and seeders completed${NC}"
 
   # Summary
   echo ""

@@ -16,10 +16,14 @@ return new class extends Migration
             $table->string('kode_pesanan')->unique();
             $table->string('customer_name');
             $table->string('customer_phone', 20);
+            $table->text('alamat')->nullable();
+            $table->text('catatan')->nullable();
+            $table->date('tanggal_ambil')->nullable();
             $table->decimal('total_price', 14, 2)->default(0);
             $table->enum('status', ['pending', 'diproses', 'selesai', 'dibatalkan'])->default('pending');
-            $table->text('catatan')->nullable();
             $table->timestamps();
+
+            $table->index('status');
         });
     }
 

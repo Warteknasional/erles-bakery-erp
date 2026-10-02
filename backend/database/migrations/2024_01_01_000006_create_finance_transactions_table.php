@@ -19,7 +19,12 @@ return new class extends Migration
             $table->text('catatan')->nullable();
             $table->date('tanggal');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
             $table->timestamps();
+
+            $table->index('tipe');
+            $table->index('tanggal');
+            $table->index('kategori');
         });
     }
 
