@@ -56,6 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/products/{product}', [ProductController::class, 'update'])->middleware('role:admin,staff');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->middleware('role:admin');
 
+    // Customer Management (Admin / Staff)
+    Route::apiResource('/customers', \App\Http\Controllers\CustomerController::class)->middleware('role:admin,staff');
+
     // Admin Order Management
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);

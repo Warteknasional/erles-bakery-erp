@@ -14,6 +14,7 @@ class Order extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'customer_id',
         'kode_pesanan',
         'customer_name',
         'customer_phone',
@@ -33,6 +34,14 @@ class Order extends Model
             'total_price' => 'decimal:2',
             'tanggal_ambil' => 'date',
         ];
+    }
+
+    /**
+     * Customer who placed this order.
+     */
+    public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     /**

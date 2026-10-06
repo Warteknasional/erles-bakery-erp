@@ -69,7 +69,14 @@ class OrderController extends Controller
             $productIds = collect($validated['items'])->pluck('product_id')->unique();
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
+            $customer = \App\Models\Customer::findOrCreateByPhone(
+                $validated['customer_phone'],
+                $validated['customer_name'],
+                $validated['alamat'] ?? null
+            );
+
             $order = Order::create([
+                'customer_id' => $customer->id,
                 'kode_pesanan' => Order::generateKodePesanan(),
                 'customer_name' => $validated['customer_name'],
                 'customer_phone' => $validated['customer_phone'],
@@ -103,7 +110,10 @@ class OrderController extends Controller
             }
 
             $order->update(['total_price' => $totalPrice]);
-            $order->load('items.product');
+            $customer->increment('total_orders');
+            $customer->increment('total_spent', $totalPrice);
+
+            $order->load(['items.product', 'customer']);
 
             return $order;
         });
