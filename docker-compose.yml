@@ -1,22 +1,4 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: erles_db
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: erles_bakery
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d erles_bakery"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build:
       context: ./backend
@@ -31,15 +13,6 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
-      DB_CONNECTION: pgsql
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_DATABASE: erles_bakery
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-    depends_on:
-      db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 10s
@@ -73,7 +46,6 @@ services:
     command: npm run dev -- --host 0.0.0.0 --port 5173
 
 volumes:
-  pgdata:
   backend_vendor:
   admin_node_modules:
   public_node_modules:
