@@ -6,9 +6,10 @@ Sistem ERP terintegrasi untuk **Erles Bakery**, mencakup manajemen pesanan, prod
 
 ```
 erles-bakery-erp/
-├── backend/          # Laravel 13 (API-only) + PostgreSQL + Sanctum
+├── backend/          # Laravel 13 (API-only) + PostgreSQL (Supabase) + Sanctum
 ├── admin/            # [Git Submodule] React + Vite — Dashboard Admin (port 5174)
 ├── public/           # [Git Submodule] React + Vite — Website Publik (port 5173)
+├── supabase/         # Skrip SQL Supabase (RLS, dsb.)
 ├── docker-compose.yml
 ├── run.sh            # Script orchestrator
 └── README.md
@@ -20,19 +21,25 @@ erles-bakery-erp/
 ┌─────────────────────────────────────────────────────────┐
 │                    Docker Compose                       │
 │                                                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │  PostgreSQL   │  │   Backend    │  │    Admin      │  │
-│  │  :5432        │◄─│  Laravel     │  │  React+Vite   │  │
-│  │              │  │  :8000       │◄─│  :5174        │  │
-│  └──────────────┘  └──────┬───────┘  └──────────────┘  │
-│                           │                             │
-│                           ▼                             │
-│                    ┌──────────────┐                     │
-│                    │   Public     │                     │
-│                    │  React+Vite  │                     │
-│                    │  :5173       │                     │
-│                    └──────────────┘                     │
-└─────────────────────────────────────────────────────────┘
+│                     ┌──────────────┐  ┌──────────────┐  │
+│                     │   Backend    │  │    Admin      │  │
+│                     │  Laravel     │  │  React+Vite   │  │
+│                     │  :8000       │◄─│  :5174        │  │
+│                     └──────┬───────┘  └──────────────┘  │
+│                            │                            │
+│                            ▼                            │
+│                     ┌──────────────┐                    │
+│                     │   Public     │                    │
+│                     │  React+Vite  │                    │
+│                     │  :5173       │                    │
+│                     └──────────────┘                    │
+└────────────────────────────┼────────────────────────────┘
+                             │ (Session Pooler :5432)
+                             ▼
+              ┌──────────────────────────────┐
+              │      Supabase (Hosted)       │
+              │         PostgreSQL           │
+              └──────────────────────────────┘
 ```
 
 ## Cara Memulai
@@ -55,7 +62,30 @@ Jika sudah clone tanpa `--recurse-submodules`:
 git submodule update --init --recursive
 ```
 
-### 2. Jalankan Aplikasi
+### 2. Setup Supabase Database
+
+Proyek ini menggunakan PostgreSQL hosted di **Supabase** (bukan database container lokal). Hanya service **backend** yang membutuhkan kredensial database; frontend admin & public berkomunikasi melalui backend API.
+
+1. Buka dashboard Supabase (Region Singapore, Project ref: `iohzdauarxzbcynxvgpr`).
+2. Masuk ke **Connect** > pilih tab **Session pooler** (Port 5432, mode session).
+   > **Catatan Penting**: Gunakan host Session pooler (`aws-0-ap-southeast-1.pooler.supabase.com`), **BUKAN** host direct `db.<ref>.supabase.co` karena direct connection di free tier bersifat IPv6-only dan sering gagal dijangkau dari lingkungan Docker.
+3. Salin kredensial ke `backend/.env` (buat dari `backend/.env.example` jika belum ada):
+   ```env
+   DB_CONNECTION=pgsql
+   DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+   DB_PORT=5432
+   DB_DATABASE=postgres
+   DB_USERNAME=postgres.iohzdauarxzbcynxvgpr
+   DB_PASSWORD=<isi-password-database>
+   DB_SSLMODE=require
+   ```
+   > ⚠️ **Keamanan**: Jangan pernah membagikan atau meng-commit file `backend/.env` ke git repository!
+4. Jalankan aplikasi via `./run.sh dev` (script akan otomatis memeriksa koneksi database dan menjalankan migrasi).
+5. Jalankan skrip RLS: Buka **Supabase SQL Editor**, salin dan jalankan seluruh isi file `supabase/rls.sql` untuk mengaktifkan Row Level Security pada semua tabel di skema public. Anda dapat menjalankan `./run.sh rls` untuk melihat petunjuk lengkap.
+
+> **Peringatan Free Tier**: Project Supabase pada tier gratis akan otomatis di-pause jika tidak aktif selama ~1 minggu. Jika backend gagal terhubung, buka dashboard Supabase dan klik **Restore Project**.
+
+### 3. Jalankan Aplikasi
 
 Cukup jalankan **satu perintah** berikut di terminal (berada di root proyek):
 
@@ -72,11 +102,12 @@ Script pintar `run.sh` ini bertindak sebagai **CLI task runner** dengan berbagai
 
 | Opsi Perintah        | Penjelasan                                                               |
 |----------------------|--------------------------------------------------------------------------|
-| `./run.sh dev`       | (Default) Build & jalankan semua layanan, tunggu DB siap, dan migrasi. |
+| `./run.sh dev`       | (Default) Build & jalankan semua layanan, verifikasi koneksi Supabase, dan migrasi. |
 | `./run.sh stop`      | Hentikan dan hapus semua container (setara dengan `docker compose down`).|
 | `./run.sh restart`   | Lakukan proses stop, lalu jalankan `dev` kembali.                        |
 | `./run.sh logs`      | Lihat log semua container (atau layanan spesifik, misal `./run.sh logs backend`). |
-| `./run.sh fresh`     | Refresh DB secara total (Drop seluruh tabel, migrasi ulang, dan jalankan seeder). |
+| `./run.sh fresh`     | Refresh DB (Drop tabel, migrasi ulang, seed) dengan konfirmasi interaktif (gunakan `--force` untuk skip). |
+| `./run.sh rls`       | Tampilkan petunjuk pengaktifan Row Level Security (RLS) di Supabase SQL Editor. |
 | `./run.sh help`      | Tampilkan menu bantuan ini di terminal Anda.                             |
 
 | Service          | URL                            |
@@ -85,7 +116,7 @@ Script pintar `run.sh` ini bertindak sebagai **CLI task runner** dengan berbagai
 | **Health Check** | http://localhost:8000/api/health |
 | **Admin Panel**  | http://localhost:5174          |
 | **Website Publik** | http://localhost:5173        |
-| **PostgreSQL**   | localhost:5432                 |
+| **PostgreSQL**   | Supabase (hosted)              |
 
 ## Skema Database
 
@@ -149,17 +180,17 @@ docker compose restart backend
 # Hentikan semua service
 docker compose down
 
-# Hentikan dan hapus volume (reset database)
-docker compose down -v
+# Reset database Supabase bersama (memerlukan konfirmasi "yes")
+./run.sh fresh
 
-# Jalankan artisan command
+# Jalankan artisan command di backend
 docker compose exec backend php artisan <command>
 ```
 
 ## Teknologi
 
 - **Backend**: Laravel 13, PHP 8.2, Laravel Sanctum
-- **Database**: PostgreSQL 16
+- **Database**: PostgreSQL (Supabase Hosted)
 - **Frontend Admin**: React 19, Vite, Axios, React Router, Lucide Icons
 - **Frontend Public**: React 19, Vite, Axios, React Router, Lucide Icons
 - **Orkestrasi**: Docker Compose
