@@ -101,4 +101,39 @@ class AuthTest extends TestCase
 
         $this->assertCount(0, $admin->tokens);
     }
+
+    public function test_role_middleware_allows_authorized_role(): void
+    {
+        $admin = User::where('email', 'admin@erlesbakery.com')->first();
+        $token = $admin->createToken('test_token')->plainTextToken;
+
+        \Illuminate\Support\Facades\Route::get('/api/test-admin-only', function () {
+            return response()->json(['success' => true]);
+        })->middleware(['auth:sanctum', 'role:admin']);
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/test-admin-only');
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+    }
+
+    public function test_role_middleware_forbids_unauthorized_role(): void
+    {
+        $staff = User::factory()->create(['role' => 'karyawan']);
+        $token = $staff->createToken('test_token')->plainTextToken;
+
+        \Illuminate\Support\Facades\Route::get('/api/test-admin-role', function () {
+            return response()->json(['success' => true]);
+        })->middleware(['auth:sanctum', 'role:admin']);
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/test-admin-role');
+
+        $response->assertStatus(403)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk tindakan ini.',
+            ]);
+    }
 }

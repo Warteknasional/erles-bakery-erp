@@ -59,6 +59,32 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is staff / karyawan.
+     */
+    public function isStaff(): bool
+    {
+        return in_array($this->role, ['staff', 'karyawan']);
+    }
+
+    /**
+     * Check if user has specific role(s).
+     */
+    public function hasRole(string|array $roles): bool
+    {
+        $roles = is_array($roles) ? $roles : explode(',', $roles);
+        if (in_array($this->role, $roles)) {
+            return true;
+        }
+        if (in_array('staff', $roles) && $this->role === 'karyawan') {
+            return true;
+        }
+        if (in_array('karyawan', $roles) && $this->role === 'staff') {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Finance transactions recorded by this user.
      */
     public function financeTransactions(): HasMany
