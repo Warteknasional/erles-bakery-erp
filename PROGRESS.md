@@ -20,7 +20,7 @@ Hasil audit struktur repositori, migrasi, model, rute, kontroler, dan pengujian 
 | **8. Keuangan & Dashboard**| **DONE** | Pemasukan otomatis terintegrasi dari pembayaran pesanan, pengeluaran manual (kategori, nominal, tanggal), laporan keuangan dengan filter tanggal/bulan/tahun, ringkasan harian & bulanan (omzet, pengeluaran, laba), endpoint `/api/dashboard` lengkap, otorisasi role, dan feature test 100% lulus. |
 | **9. Stok Sederhana** | **DONE** | Modul penyesuaian stok produk via `POST /api/products/{product}/adjust-stock` (tambah, kurang dengan batas ketersediaan, set) dan pengujian otomatis. |
 | **10. Kualitas & Pengujian**| **DONE** | FormRequest untuk seluruh input, API Resource untuk seluruh output, DatabaseSeeder lengkap (admin, staff, kategori, produk, pesanan, pembayaran, keuangan), 39 feature & unit test (398 assertions) 100% lulus, serta `docs/API.md` lengkap. |
-| **11. Docker & Portabilitas**| **PARTIAL** | Docker Compose sudah ada. Perlu memastikan startup bersih dari nol tanpa konfigurasi Supabase dan file `.env.example` baku. |
+| **11. Docker & Portabilitas**| **DONE** | Docker Compose berjalan bersih dari nol dengan Postgres 16 lokal, migrasi otomatis saat container boot, DatabaseSeeder 100% idempoten, dan `.env.example` baku tanpa ketergantungan ke Supabase. |
 
 ---
 
@@ -36,4 +36,4 @@ Hasil audit struktur repositori, migrasi, model, rute, kontroler, dan pengujian 
 8. [x] **Langkah 8: Keuangan & Dashboard** - Pemasukan otomatis dari `Payment`, pengeluaran manual, laporan omzet/pengeluaran/laba harian & bulanan, endpoint `/api/dashboard`, proteksi role, dan feature test.
 9. [x] **Langkah 9: Stok (Opsional)** - Modul penyesuaian stok produk via `POST /api/products/{product}/adjust-stock` (tambah, kurang, set stok) dan validasi ketersediaan.
 10. [x] **Langkah 10: Kualitas & Dokumentasi** - Standarisasi FormRequest & API Resource di seluruh controller, DatabaseSeeder lengkap, pengujian menyeluruh (39 feature test), dan pembuatan dokumen kontrak `docs/API.md`.
-11. [ ] **Langkah 11: Uji Docker Dari Nol** - Verifikasi migrasi, seed, dan endpoint siap pakai.
+11. [x] **Langkah 11: Uji Docker Dari Nol** - Verifikasi migrasi otomatis, seeder idempoten, healthcheck container, dan konfigurasi lingkungan portable.

@@ -82,10 +82,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $products = $productDefs->map(function ($data) use ($categories) {
-            $data['slug'] = Str::slug($data['nama']);
+            $slug = Str::slug($data['nama']);
+            $data['slug'] = $slug;
             $data['is_active'] = true;
             $data['category_id'] = $categories[$data['kategori']]?->id;
-            return Product::create($data);
+            return Product::firstOrCreate(['slug' => $slug], $data);
         });
 
         // ═══════════════════════════════════════
@@ -153,31 +154,33 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
-        foreach ($orderData as $data) {
-            $order = Order::create([
-                'kode_pesanan' => Order::generateKodePesanan(),
-                'customer_name' => $data['customer_name'],
-                'customer_phone' => $data['customer_phone'],
-                'alamat' => $data['alamat'],
-                'catatan' => $data['catatan'],
-                'tanggal_ambil' => $data['tanggal_ambil'],
-                'status' => $data['status'],
-                'payment_status' => 'unpaid',
-                'paid_amount' => 0,
-            ]);
-
-            foreach ($data['items'] as $item) {
-                $product = $products[$item['product_index']];
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $product->id,
-                    'qty' => $item['qty'],
-                    'unit_price' => $product->harga,
-                    'subtotal' => $product->harga * $item['qty'],
+        if (Order::count() === 0) {
+            foreach ($orderData as $data) {
+                $order = Order::create([
+                    'kode_pesanan' => Order::generateKodePesanan(),
+                    'customer_name' => $data['customer_name'],
+                    'customer_phone' => $data['customer_phone'],
+                    'alamat' => $data['alamat'],
+                    'catatan' => $data['catatan'],
+                    'tanggal_ambil' => $data['tanggal_ambil'],
+                    'status' => $data['status'],
+                    'payment_status' => 'unpaid',
+                    'paid_amount' => 0,
                 ]);
-            }
 
-            $order->recalculateTotal();
+                foreach ($data['items'] as $item) {
+                    $product = $products[$item['product_index']];
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                        'qty' => $item['qty'],
+                        'unit_price' => $product->harga,
+                        'subtotal' => $product->harga * $item['qty'],
+                    ]);
+                }
+
+                $order->recalculateTotal();
+            }
         }
 
         // ═══════════════════════════════════════
@@ -185,7 +188,7 @@ class DatabaseSeeder extends Seeder
         // ═══════════════════════════════════════
         // Pemasukan dari pesanan selesai
         $completedOrder = Order::whereIn('status', ['completed', 'selesai'])->first();
-        if ($completedOrder) {
+        if ($completedOrder && FinanceTransaction::where('order_id', $completedOrder->id)->count() === 0) {
             $payment = Payment::create([
                 'order_id' => $completedOrder->id,
                 'user_id' => $admin->id,
@@ -211,33 +214,37 @@ class DatabaseSeeder extends Seeder
         }
 
         // Pengeluaran operasional (5 transaksi)
-        $expenses = [
-            ['nominal' => 500000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian tepung terigu 25kg',              'tanggal' => now()->subDays(10)->toDateString()],
-            ['nominal' => 350000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian mentega & margarin',              'tanggal' => now()->subDays(8)->toDateString()],
-            ['nominal' => 150000,  'kategori' => 'Packaging',   'catatan' => 'Box hampers dan pita',                      'tanggal' => now()->subDays(7)->toDateString()],
-            ['nominal' => 200000,  'kategori' => 'Operasional', 'catatan' => 'Biaya listrik toko bulan ini',              'tanggal' => now()->subDays(5)->toDateString()],
-            ['nominal' => 1200000, 'kategori' => 'Gaji',        'catatan' => 'Gaji karyawan part-time (2 orang)',         'tanggal' => now()->subDays(1)->toDateString()],
-        ];
+        if (FinanceTransaction::where('tipe', 'pengeluaran')->count() === 0) {
+            $expenses = [
+                ['nominal' => 500000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian tepung terigu 25kg',              'tanggal' => now()->subDays(10)->toDateString()],
+                ['nominal' => 350000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian mentega & margarin',              'tanggal' => now()->subDays(8)->toDateString()],
+                ['nominal' => 150000,  'kategori' => 'Packaging',   'catatan' => 'Box hampers dan pita',                      'tanggal' => now()->subDays(7)->toDateString()],
+                ['nominal' => 200000,  'kategori' => 'Operasional', 'catatan' => 'Biaya listrik toko bulan ini',              'tanggal' => now()->subDays(5)->toDateString()],
+                ['nominal' => 1200000, 'kategori' => 'Gaji',        'catatan' => 'Gaji karyawan part-time (2 orang)',         'tanggal' => now()->subDays(1)->toDateString()],
+            ];
 
-        foreach ($expenses as $expense) {
-            FinanceTransaction::create([
-                'tipe' => 'pengeluaran',
-                'nominal' => $expense['nominal'],
-                'kategori' => $expense['kategori'],
-                'catatan' => $expense['catatan'],
-                'tanggal' => $expense['tanggal'],
-                'user_id' => $admin->id,
-            ]);
+            foreach ($expenses as $expense) {
+                FinanceTransaction::create([
+                    'tipe' => 'pengeluaran',
+                    'nominal' => $expense['nominal'],
+                    'kategori' => $expense['kategori'],
+                    'catatan' => $expense['catatan'],
+                    'tanggal' => $expense['tanggal'],
+                    'user_id' => $admin->id,
+                ]);
+            }
         }
 
         // Pemasukan tambahan (non-order)
-        FinanceTransaction::create([
-            'tipe' => 'pemasukan',
-            'nominal' => 180000,
-            'kategori' => 'Penjualan Langsung',
-            'catatan' => 'Penjualan walk-in roti & kue harian',
-            'tanggal' => now()->subDays(3)->toDateString(),
-            'user_id' => $admin->id,
-        ]);
+        if (FinanceTransaction::where('kategori', 'Penjualan Langsung')->count() === 0) {
+            FinanceTransaction::create([
+                'tipe' => 'pemasukan',
+                'nominal' => 180000,
+                'kategori' => 'Penjualan Langsung',
+                'catatan' => 'Penjualan walk-in roti & kue harian',
+                'tanggal' => now()->subDays(3)->toDateString(),
+                'user_id' => $admin->id,
+            ]);
+        }
     }
 }
