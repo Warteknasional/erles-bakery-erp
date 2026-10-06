@@ -15,11 +15,12 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'category_id' => ['nullable', 'required_without:kategori', 'exists:categories,id'],
             'nama' => ['required', 'string', 'max:255', 'unique:products,nama'],
             'deskripsi' => ['nullable', 'string'],
             'harga' => ['required', 'numeric', 'min:0'],
             'stok' => ['nullable', 'integer', 'min:0'],
-            'kategori' => ['required', 'string', 'max:100'],
+            'kategori' => ['nullable', 'required_without:category_id', 'string', 'max:100'],
             'gambar' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
         ];

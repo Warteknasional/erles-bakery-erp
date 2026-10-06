@@ -88,10 +88,23 @@ class ProductController extends Controller
         $data['stok'] = $data['stok'] ?? 0;
         $data['is_active'] = $data['is_active'] ?? true;
 
+        if (!empty($data['category_id']) && empty($data['kategori'])) {
+            $cat = \App\Models\Category::find($data['category_id']);
+            if ($cat) {
+                $data['kategori'] = $cat->name;
+            }
+        } elseif (!empty($data['kategori']) && empty($data['category_id'])) {
+            $cat = \App\Models\Category::firstOrCreate(
+                ['name' => $data['kategori']],
+                ['slug' => Str::slug($data['kategori'])]
+            );
+            $data['category_id'] = $cat->id;
+        }
+
         $product = Product::create($data);
 
         return $this->success(
-            new ProductResource($product),
+            new ProductResource($product->load('category')),
             'Produk berhasil ditambahkan.',
             201
         );
@@ -103,8 +116,8 @@ class ProductController extends Controller
     public function show(string $idOrSlug): JsonResponse
     {
         $product = is_numeric($idOrSlug)
-            ? Product::find($idOrSlug)
-            : Product::where('slug', $idOrSlug)->first();
+            ? Product::with('category')->find($idOrSlug)
+            : Product::with('category')->where('slug', $idOrSlug)->first();
 
         if (!$product) {
             return $this->error('Produk tidak ditemukan.', 404);
@@ -134,10 +147,23 @@ class ProductController extends Controller
             $data['slug'] = $slug;
         }
 
+        if (isset($data['category_id']) && empty($data['kategori'])) {
+            $cat = \App\Models\Category::find($data['category_id']);
+            if ($cat) {
+                $data['kategori'] = $cat->name;
+            }
+        } elseif (!empty($data['kategori'])) {
+            $cat = \App\Models\Category::firstOrCreate(
+                ['name' => $data['kategori']],
+                ['slug' => Str::slug($data['kategori'])]
+            );
+            $data['category_id'] = $cat->id;
+        }
+
         $product->update($data);
 
         return $this->success(
-            new ProductResource($product),
+            new ProductResource($product->load('category')),
             'Produk berhasil diperbarui.'
         );
     }

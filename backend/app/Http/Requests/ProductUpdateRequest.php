@@ -20,11 +20,12 @@ class ProductUpdateRequest extends FormRequest
         }
 
         return [
+            'category_id' => ['nullable', 'exists:categories,id'],
             'nama' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('products', 'nama')->ignore($productId)],
             'deskripsi' => ['nullable', 'string'],
             'harga' => ['sometimes', 'required', 'numeric', 'min:0'],
             'stok' => ['nullable', 'integer', 'min:0'],
-            'kategori' => ['sometimes', 'required', 'string', 'max:100'],
+            'kategori' => ['nullable', 'string', 'max:100'],
             'gambar' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
         ];

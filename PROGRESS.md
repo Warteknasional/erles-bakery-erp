@@ -29,7 +29,7 @@ Hasil audit struktur repositori, migrasi, model, rute, kontroler, dan pengujian 
 1. [x] **Langkah 1: Audit Kondisi** - Dokumentasi status modul di `PROGRESS.md`.
 2. [x] **Langkah 2: Fondasi** - Konfigurasi CORS (dukung localhost & 127.0.0.1 untuk port 5173 & 5174), error handler JSON seragam (401, 403, 404, 405, 422, 429), rate limiter bernama (login, public-api, public-order), dan pembersihan .env.example murni Postgres lokal tanpa Supabase.
 3. [x] **Langkah 3: Auth & Role** - Autentikasi Sanctum (login, logout, me), helper role (`isAdmin()`, `isStaff()`, `hasRole()`), middleware `EnsureUserHasRole` (`role:admin`, `role:admin,staff`), penanganan 403 Forbidden, dan pengujian otorisasi peran.
-4. [ ] **Langkah 4: Produk & Kategori** - CRUD Kategori (tabel/model `Category`), relasi ke `Product`, katalog publik read-only.
+4. [x] **Langkah 4: Produk & Kategori** - Tabel/migrasi `categories` baru, model `Category`, relasi `Category` <-> `Product`, sinkronisasi kategori nama & category_id, FormRequest (`CategoryStoreRequest`, `CategoryUpdateRequest`), `CategoryResource`, `CategoryController` (CRUD kategori, cegah hapus kategori berelasi), serta endpoint katalog publik read-only.
 5. [ ] **Langkah 5: Pelanggan** - Tabel/model `Customer`, auto-create / sync saat pesanan publik masuk, CRUD pelanggan admin.
 6. [ ] **Langkah 6: Pesanan** - Alur status order lengkap (`pending`, `confirmed`, `processing`, `ready`, `completed`, `cancelled`), validasi transisi alur, pembatalan, kalkulasi server, DB transactions.
 7. [ ] **Langkah 7: Pembayaran** - Model `Payment`, pencatatan pembayaran pesanan (DP/lunas), auto update `payment_status` (`unpaid`, `partial`, `paid`), validasi nominal <= total.

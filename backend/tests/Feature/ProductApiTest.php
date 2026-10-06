@@ -133,4 +133,57 @@ class ProductApiTest extends TestCase
 
         $this->assertDatabaseMissing('products', ['id' => $productId]);
     }
+
+    public function test_category_crud_and_staff_access(): void
+    {
+        $admin = User::where('email', 'admin@erlesbakery.com')->first();
+        $adminToken = $admin->createToken('admin_token')->plainTextToken;
+
+        // 1. Create Category
+        $catResponse = $this->withHeader('Authorization', "Bearer {$adminToken}")
+            ->postJson('/api/categories', [
+                'name' => 'Pastry',
+                'description' => 'Aneka pastry artisanal',
+            ]);
+
+        $catResponse->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'name' => 'Pastry',
+                    'slug' => 'pastry',
+                ],
+            ]);
+
+        $catId = $catResponse->json('data.id');
+
+        // 2. Public view categories
+        $listResponse = $this->getJson('/api/categories');
+        $listResponse->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        // 3. Create product with category_id
+        $prodResponse = $this->withHeader('Authorization', "Bearer {$adminToken}")
+            ->postJson('/api/products', [
+                'nama' => 'Croissant Almond',
+                'harga' => 25000,
+                'category_id' => $catId,
+                'stok' => 20,
+            ]);
+
+        $prodResponse->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'nama' => 'Croissant Almond',
+                    'category_id' => $catId,
+                    'kategori' => 'Pastry',
+                ],
+            ]);
+
+        // 4. Delete category with products should fail (422)
+        $delFail = $this->withHeader('Authorization', "Bearer {$adminToken}")
+            ->deleteJson("/api/categories/{$catId}");
+        $delFail->assertStatus(422);
+    }
 }

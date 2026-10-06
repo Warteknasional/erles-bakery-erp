@@ -14,6 +14,7 @@ class Product extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'category_id',
         'nama',
         'slug',
         'deskripsi',
@@ -34,6 +35,14 @@ class Product extends Model
             'stok' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Category of this product.
+     */
+    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     /**
