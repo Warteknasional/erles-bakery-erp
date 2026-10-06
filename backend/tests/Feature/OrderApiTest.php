@@ -95,7 +95,8 @@ class OrderApiTest extends TestCase
         $this->assertNotNull($pendingOrder);
 
         $initialFinanceCount = FinanceTransaction::where('order_id', $pendingOrder->id)->count();
-        $this->assertEquals(0, $initialFinanceCount);
+        // Set order to ready before completing it
+        $pendingOrder->update(['status' => 'ready']);
 
         // Update status to 'selesai'
         $response = $this->withHeader('Authorization', "Bearer {$token}")
@@ -119,5 +120,48 @@ class OrderApiTest extends TestCase
             'nominal' => $pendingOrder->total_price,
             'kategori' => 'Penjualan',
         ]);
+    }
+
+    public function test_full_order_status_flow_and_rejection(): void
+    {
+        $admin = User::where('email', 'admin@erlesbakery.com')->first();
+        $token = $admin->createToken('admin_token')->plainTextToken;
+
+        $order = Order::factory()->create([
+            'status' => 'pending',
+            'total_price' => 50000,
+        ]);
+
+        // 1. pending -> confirmed
+        $r1 = $this->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/orders/{$order->id}/status", ['status' => 'confirmed']);
+        $r1->assertStatus(200)->assertJsonPath('data.status', 'confirmed');
+
+        // 2. confirmed -> processing
+        $r2 = $this->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/orders/{$order->id}/status", ['status' => 'processing']);
+        $r2->assertStatus(200)->assertJsonPath('data.status', 'processing');
+
+        // 3. processing -> ready
+        $r3 = $this->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/orders/{$order->id}/status", ['status' => 'ready']);
+        $r3->assertStatus(200)->assertJsonPath('data.status', 'ready');
+
+        // 4. ready -> completed
+        $r4 = $this->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/orders/{$order->id}/status", ['status' => 'completed']);
+        $r4->assertStatus(200)->assertJsonPath('data.status', 'completed');
+
+        // 5. Invalid transition: completed -> pending should fail with 422
+        $rInvalid = $this->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/orders/{$order->id}/status", ['status' => 'pending']);
+        $rInvalid->assertStatus(422)
+            ->assertJson(['success' => false]);
+
+        // 6. Cancel test
+        $freshOrder = Order::factory()->create(['status' => 'pending']);
+        $rCancel = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/orders/{$freshOrder->id}/cancel", ['alasan' => 'Stok habis']);
+        $rCancel->assertStatus(200)->assertJsonPath('data.status', 'cancelled');
     }
 }

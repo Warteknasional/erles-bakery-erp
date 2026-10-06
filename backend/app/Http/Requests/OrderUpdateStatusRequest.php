@@ -15,7 +15,18 @@ class OrderUpdateStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', Rule::in(['pending', 'diproses', 'selesai', 'dibatalkan'])],
+            'status' => ['required', 'string', Rule::in([
+                'pending',
+                'confirmed',
+                'processing',
+                'ready',
+                'completed',
+                'cancelled',
+                'diproses',
+                'selesai',
+                'dibatalkan',
+            ])],
+            'catatan' => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -23,7 +34,7 @@ class OrderUpdateStatusRequest extends FormRequest
     {
         return [
             'status.required' => 'Status pesanan wajib diisi.',
-            'status.in' => 'Status pesanan harus salah satu dari: pending, diproses, selesai, dibatalkan.',
+            'status.in' => 'Status pesanan tidak valid. Pilih dari: pending, confirmed, processing, ready, completed, cancelled.',
         ];
     }
 }

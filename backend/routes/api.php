@@ -59,12 +59,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Customer Management (Admin / Staff)
     Route::apiResource('/customers', \App\Http\Controllers\CustomerController::class)->middleware('role:admin,staff');
 
-    // Admin Order Management
-    Route::get('/orders', [OrderController::class, 'index']);
-    Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
-    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
-    Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
+    // Order Management (Admin & Staff)
+    Route::get('/orders', [OrderController::class, 'index'])->middleware('role:admin,staff');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->middleware('role:admin,staff');
+    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('role:admin,staff');
+    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('role:admin,staff');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('role:admin,staff');
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->middleware('role:admin');
 
     // Admin Finance Management
     Route::get('/finance/summary', [FinanceController::class, 'summary']);

@@ -91,6 +91,64 @@ class Order extends Model
         $this->saveQuietly();
     }
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_PROCESSING = 'processing';
+    public const STATUS_READY = 'ready';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Normalized statuses mapping for backward compatibility.
+     */
+    public static array $statusAliases = [
+        'diproses' => 'processing',
+        'selesai' => 'completed',
+        'dibatalkan' => 'cancelled',
+    ];
+
+    /**
+     * Allowed transition rules.
+     */
+    public static array $allowedTransitions = [
+        'pending' => ['confirmed', 'processing', 'cancelled', 'diproses', 'dibatalkan'],
+        'confirmed' => ['processing', 'cancelled', 'diproses', 'dibatalkan'],
+        'processing' => ['ready', 'completed', 'cancelled', 'selesai', 'dibatalkan'],
+        'ready' => ['completed', 'cancelled', 'selesai', 'dibatalkan'],
+        'completed' => [],
+        'cancelled' => [],
+        'diproses' => ['ready', 'completed', 'cancelled', 'selesai', 'dibatalkan'],
+        'selesai' => [],
+        'dibatalkan' => [],
+    ];
+
+    /**
+     * Normalize status string.
+     */
+    public static function normalizeStatus(string $status): string
+    {
+        $lower = strtolower($status);
+        return self::$statusAliases[$lower] ?? $lower;
+    }
+
+    /**
+     * Check if transition from current status to target status is valid.
+     */
+    public function canTransitionTo(string $newStatus): bool
+    {
+        $current = self::normalizeStatus($this->status);
+        $target = self::normalizeStatus($newStatus);
+
+        if ($current === $target) {
+            return true;
+        }
+
+        $allowed = self::$allowedTransitions[$current] ?? [];
+        $normalizedAllowed = array_map([self::class, 'normalizeStatus'], $allowed);
+
+        return in_array($target, $normalizedAllowed, true);
+    }
+
     /**
      * Scope: filter by status.
      */

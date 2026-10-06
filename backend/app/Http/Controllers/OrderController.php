@@ -145,19 +145,31 @@ class OrderController extends Controller
     }
 
     /**
-     * Update order status (Admin).
-     * If marked as 'selesai', automatically record revenue in finance_transactions.
+     * Update order status (Admin / Staff).
      */
     public function updateStatus(OrderUpdateStatusRequest $request, Order $order): JsonResponse
     {
         $newStatus = $request->validated('status');
         $oldStatus = $order->status;
 
-        DB::transaction(function () use ($order, $newStatus, $oldStatus, $request) {
-            $order->update(['status' => $newStatus]);
+        // Reject invalid status transitions
+        if (!$order->canTransitionTo($newStatus)) {
+            return $this->error("Transisi status dari '{$oldStatus}' ke '{$newStatus}' tidak diizinkan.", 422);
+        }
 
-            // If transitioned to 'selesai', auto-create finance transaction if not exists
-            if ($newStatus === 'selesai' && $oldStatus !== 'selesai') {
+        DB::transaction(function () use ($order, $newStatus, $oldStatus, $request) {
+            $updateData = ['status' => $newStatus];
+            if ($request->filled('catatan')) {
+                $updateData['catatan'] = trim($order->catatan . "\n[Status: {$newStatus}] " . $request->validated('catatan'));
+            }
+
+            $order->update($updateData);
+
+            // If transitioned to completed/selesai, auto-create finance transaction if not exists
+            $isComplete = in_array(Order::normalizeStatus($newStatus), ['completed', 'selesai']);
+            $wasComplete = in_array(Order::normalizeStatus($oldStatus), ['completed', 'selesai']);
+
+            if ($isComplete && !$wasComplete) {
                 $existingTx = FinanceTransaction::where('order_id', $order->id)->first();
                 if (!$existingTx && $order->total_price > 0) {
                     FinanceTransaction::create([
@@ -173,7 +185,7 @@ class OrderController extends Controller
             }
         });
 
-        $order->load('items.product');
+        $order->load(['items.product', 'customer']);
 
         return $this->success(
             new OrderResource($order),
@@ -182,15 +194,39 @@ class OrderController extends Controller
     }
 
     /**
-     * Remove or cancel an order (Admin).
+     * Cancel an order (Admin / Staff).
      */
-    public function destroy(Order $order): JsonResponse
+    public function cancel(Request $request, Order $order): JsonResponse
     {
-        $order->update(['status' => 'dibatalkan']);
+        if (!$order->canTransitionTo(Order::STATUS_CANCELLED)) {
+            return $this->error("Pesanan dengan status '{$order->status}' tidak dapat dibatalkan.", 422);
+        }
+
+        DB::transaction(function () use ($order, $request) {
+            $reason = $request->input('alasan', $request->input('catatan', 'Dibatalkan oleh admin'));
+            $order->update([
+                'status' => Order::STATUS_CANCELLED,
+                'catatan' => trim($order->catatan . "\n[Dibatalkan] " . $reason),
+            ]);
+        });
+
+        $order->load(['items.product', 'customer']);
 
         return $this->success(
             new OrderResource($order),
             'Pesanan berhasil dibatalkan.'
         );
+    }
+
+    /**
+     * Remove or cancel an order (Admin).
+     */
+    public function destroy(Order $order): JsonResponse
+    {
+        DB::transaction(function () use ($order) {
+            $order->delete();
+        });
+
+        return $this->success(null, 'Pesanan berhasil dihapus.');
     }
 }
