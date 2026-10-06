@@ -21,15 +21,17 @@ Route::get('/health', HealthController::class);
 // ─────────────────────────────────────────────────────────────
 
 // Auth
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 // Public Product Catalog
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{idOrSlug}', [ProductController::class, 'show']);
+Route::middleware('throttle:public-api')->group(function () {
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{idOrSlug}', [ProductController::class, 'show']);
+    Route::get('/orders/track/{idOrCode}', [OrderController::class, 'show']);
+});
 
-// Public Order Placement & Order Tracking
-Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:30,1');
-Route::get('/orders/track/{idOrCode}', [OrderController::class, 'show']);
+// Public Order Placement
+Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:public-order');
 
 // ─────────────────────────────────────────────────────────────
 // Protected Admin Routes (Sanctum)

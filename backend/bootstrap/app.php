@@ -51,4 +51,32 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => 'Endpoint tidak ditemukan.',
             ], 404);
         });
+
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, Request $request) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Akses ditolak. Anda tidak memiliki izin untuk tindakan ini.',
+            ], 403);
+        });
+
+        $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, Request $request) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Akses ditolak. Anda tidak memiliki izin untuk tindakan ini.',
+            ], 403);
+        });
+
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException $e, Request $request) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Metode HTTP tidak diizinkan untuk endpoint ini.',
+            ], 405);
+        });
+
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException $e, Request $request) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terlalu banyak permintaan. Silakan coba lagi beberapa saat lagi.',
+            ], 429);
+        });
     })->create();

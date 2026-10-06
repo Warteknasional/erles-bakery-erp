@@ -27,7 +27,7 @@ Hasil audit struktur repositori, migrasi, model, rute, kontroler, dan pengujian 
 ## Rencana Eksekusi Berurutan (1 Langkah = 1 Commit)
 
 1. [x] **Langkah 1: Audit Kondisi** - Dokumentasi status modul di `PROGRESS.md`.
-2. [ ] **Langkah 2: Fondasi** - Bersihkan ketergantungan Supabase dari `.env.example`, sempurnakan CORS, error handling JSON, dan rate limiter endpoint publik.
+2. [x] **Langkah 2: Fondasi** - Konfigurasi CORS (dukung localhost & 127.0.0.1 untuk port 5173 & 5174), error handler JSON seragam (401, 403, 404, 405, 422, 429), rate limiter bernama (login, public-api, public-order), dan pembersihan .env.example murni Postgres lokal tanpa Supabase.
 3. [ ] **Langkah 3: Auth & Role** - Dukungan role `admin` & `staff`, middleware `role:admin,staff`.
 4. [ ] **Langkah 4: Produk & Kategori** - CRUD Kategori (tabel/model `Category`), relasi ke `Product`, katalog publik read-only.
 5. [ ] **Langkah 5: Pelanggan** - Tabel/model `Customer`, auto-create / sync saat pesanan publik masuk, CRUD pelanggan admin.
