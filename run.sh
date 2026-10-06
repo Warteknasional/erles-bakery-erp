@@ -49,11 +49,17 @@ cmd_dev() {
   docker compose up --build -d
   echo -e "${GREEN}✓ Containers started${NC}"
 
-  # 4. Wait for DB to be healthy
-  echo -e "${YELLOW}[4/6]${NC} Waiting for database to be ready..."
-  RETRIES=30
-  until docker compose exec -T db pg_isready -U postgres -d erles_bakery > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
-    echo -e "  Waiting for PostgreSQL... (${RETRIES} retries left)"
+  # 4. Wait for database connection (Supabase)
+  echo -e "${YELLOW}[4/6]${NC} Waiting for database connection (Supabase)..."
+  if grep -q "<isi-password-database>" backend/.env 2>/dev/null || grep -q "<region>" backend/.env 2>/dev/null; then
+    echo -e "${RED}✗ backend/.env masih berisi placeholder (<isi-password-database> atau <region>).${NC}"
+    echo -e "${YELLOW}Silakan lengkapi DB_HOST dan DB_PASSWORD di backend/.env dari Supabase > Connect > Session pooler terlebih dahulu.${NC}"
+    exit 1
+  fi
+
+  RETRIES=15
+  until docker compose exec -T backend php artisan db:show > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+    echo -e "  Waiting for database connection... (${RETRIES} retries left)"
     RETRIES=$((RETRIES - 1))
     sleep 2
   done
@@ -89,7 +95,7 @@ cmd_dev() {
   echo -e "  ${BOLD}Health Check:${NC}  http://localhost:${CYAN}8000${NC}/api/health"
   echo -e "  ${BOLD}Admin Panel:${NC}   http://localhost:${CYAN}5174${NC}"
   echo -e "  ${BOLD}Public Site:${NC}   http://localhost:${CYAN}5173${NC}"
-  echo -e "  ${BOLD}PostgreSQL:${NC}    localhost:${CYAN}5432${NC} (internal)"
+  echo -e "  ${BOLD}PostgreSQL:${NC}    Supabase (hosted)"
   echo ""
 }
 
@@ -115,6 +121,15 @@ cmd_logs() {
 }
 
 cmd_fresh() {
+  if [ "$ARG2" != "--force" ]; then
+    echo -e "${RED}${BOLD}PERINGATAN: Perintah ini akan menghapus SEMUA tabel dan data di Supabase (database tim)!${NC}"
+    read -r -p "Ketik 'yes' untuk konfirmasi melanjutkan: " CONFIRM
+    if [ "$CONFIRM" != "yes" ]; then
+      echo -e "${YELLOW}Operasi dibatalkan.${NC}"
+      exit 0
+    fi
+  fi
+
   echo -e "${YELLOW}Running migrate:fresh --seed...${NC}"
   docker compose exec backend php artisan migrate:fresh --seed
   echo -e "${GREEN}✓ Database refreshed${NC}"
@@ -128,7 +143,7 @@ cmd_help() {
   echo -e "  ${CYAN}stop${NC}      - Stop and remove all containers"
   echo -e "  ${CYAN}restart${NC}   - Restart all services (stop, then dev)"
   echo -e "  ${CYAN}logs${NC}      - View logs for all services (or specify a service: ./run.sh logs backend)"
-  echo -e "  ${CYAN}fresh${NC}     - Drop all tables, re-run all migrations, and run seeders"
+  echo -e "  ${CYAN}fresh${NC}     - Drop all tables, re-run all migrations, and run seeders (use --force to skip confirmation)"
   echo -e "  ${CYAN}help${NC}      - Show this help message"
   echo ""
 }
