@@ -188,29 +188,38 @@ class DatabaseSeeder extends Seeder
         // ═══════════════════════════════════════
         // Pemasukan dari pesanan selesai
         $completedOrder = Order::whereIn('status', ['completed', 'selesai'])->first();
-        if ($completedOrder && FinanceTransaction::where('order_id', $completedOrder->id)->count() === 0) {
-            $payment = Payment::create([
-                'order_id' => $completedOrder->id,
-                'user_id' => $admin->id,
-                'nominal' => $completedOrder->total_price,
-                'metode' => 'transfer',
-                'tipe' => 'lunas',
-                'tanggal' => $completedOrder->updated_at->toDateString(),
-                'catatan' => "Pembayaran pesanan {$completedOrder->kode_pesanan}",
-            ]);
+        if ($completedOrder) {
+            $payment = Payment::firstOrCreate(
+                ['order_id' => $completedOrder->id],
+                [
+                    'user_id' => $admin->id,
+                    'nominal' => $completedOrder->total_price,
+                    'metode' => 'transfer',
+                    'tipe' => 'lunas',
+                    'tanggal' => $completedOrder->updated_at->toDateString(),
+                    'catatan' => "Pembayaran pesanan {$completedOrder->kode_pesanan}",
+                ]
+            );
 
             $completedOrder->recalculatePaymentStatus();
 
-            FinanceTransaction::create([
-                'tipe' => 'pemasukan',
-                'nominal' => $completedOrder->total_price,
-                'kategori' => 'Penjualan',
-                'catatan' => "Pembayaran pesanan {$completedOrder->kode_pesanan}",
-                'tanggal' => $completedOrder->updated_at->toDateString(),
-                'user_id' => $admin->id,
-                'order_id' => $completedOrder->id,
-                'payment_id' => $payment->id,
-            ]);
+            $existingTx = FinanceTransaction::where('order_id', $completedOrder->id)->first();
+            if ($existingTx) {
+                if (!$existingTx->payment_id) {
+                    $existingTx->update(['payment_id' => $payment->id]);
+                }
+            } else {
+                FinanceTransaction::create([
+                    'tipe' => 'pemasukan',
+                    'nominal' => $completedOrder->total_price,
+                    'kategori' => 'Penjualan',
+                    'catatan' => "Pembayaran pesanan {$completedOrder->kode_pesanan}",
+                    'tanggal' => $completedOrder->updated_at->toDateString(),
+                    'user_id' => $admin->id,
+                    'order_id' => $completedOrder->id,
+                    'payment_id' => $payment->id,
+                ]);
+            }
         }
 
         // Pengeluaran operasional (5 transaksi)
