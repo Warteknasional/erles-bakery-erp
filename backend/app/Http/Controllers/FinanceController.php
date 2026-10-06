@@ -7,8 +7,10 @@ use App\Http\Requests\FinanceTransactionUpdateRequest;
 use App\Http\Resources\FinanceTransactionResource;
 use App\Models\FinanceTransaction;
 use App\Traits\ApiResponse;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FinanceController extends Controller
 {
@@ -21,9 +23,9 @@ class FinanceController extends Controller
     {
         $query = FinanceTransaction::with(['user', 'order'])->latest('tanggal')->latest('id');
 
-        // Filter by tipe
+        // Filter by tipe (pemasukan / pengeluaran)
         if ($request->filled('tipe')) {
-            $query->where('tipe', $request->query('tipe'));
+            $query->where('tipe', strtolower($request->query('tipe')));
         }
 
         // Filter by kategori
@@ -31,12 +33,14 @@ class FinanceController extends Controller
             $query->where('kategori', $request->query('kategori'));
         }
 
-        // Filter by date range
-        if ($request->filled('tanggal_mulai')) {
-            $query->whereDate('tanggal', '>=', $request->query('tanggal_mulai'));
+        // Filter by date range (supports tanggal_mulai/akhir and start_date/end_date)
+        $startDate = $request->query('tanggal_mulai') ?? $request->query('start_date');
+        $endDate = $request->query('tanggal_akhir') ?? $request->query('end_date');
+        if ($startDate) {
+            $query->whereDate('tanggal', '>=', $startDate);
         }
-        if ($request->filled('tanggal_akhir')) {
-            $query->whereDate('tanggal', '<=', $request->query('tanggal_akhir'));
+        if ($endDate) {
+            $query->whereDate('tanggal', '<=', $endDate);
         }
 
         // Search by catatan or kategori
@@ -65,6 +69,8 @@ class FinanceController extends Controller
                     'total_pemasukan' => $totalPemasukan,
                     'total_pengeluaran' => $totalPengeluaran,
                     'saldo' => $saldo,
+                    'omzet' => $totalPemasukan,
+                    'laba' => $saldo,
                 ],
             ]
         );
@@ -126,35 +132,83 @@ class FinanceController extends Controller
     }
 
     /**
-     * Get aggregate financial summary report.
+     * Get aggregate financial summary report with daily & monthly breakdowns.
      */
     public function summary(Request $request): JsonResponse
     {
         $query = FinanceTransaction::query();
 
-        if ($request->filled('bulan')) {
-            $query->whereMonth('tanggal', $request->query('bulan'));
+        $startDate = $request->query('tanggal_mulai') ?? $request->query('start_date');
+        $endDate = $request->query('tanggal_akhir') ?? $request->query('end_date');
+        $month = $request->query('bulan') ?? $request->query('month');
+        $year = $request->query('tahun') ?? $request->query('year');
+
+        if ($startDate) {
+            $query->whereDate('tanggal', '>=', $startDate);
         }
-        if ($request->filled('tahun')) {
-            $query->whereYear('tanggal', $request->query('tahun', date('Y')));
+        if ($endDate) {
+            $query->whereDate('tanggal', '<=', $endDate);
+        }
+        if ($month) {
+            $query->whereMonth('tanggal', $month);
+        }
+        if ($year) {
+            $query->whereYear('tanggal', $year);
         }
 
-        $totalPemasukan = (float) (clone $query)->where('tipe', 'pemasukan')->sum('nominal');
-        $totalPengeluaran = (float) (clone $query)->where('tipe', 'pengeluaran')->sum('nominal');
+        $allTransactions = $query->get();
+
+        $totalPemasukan = (float) $allTransactions->where('tipe', 'pemasukan')->sum('nominal');
+        $totalPengeluaran = (float) $allTransactions->where('tipe', 'pengeluaran')->sum('nominal');
         $saldo = $totalPemasukan - $totalPengeluaran;
 
         // Breakdown by category
-        $byCategory = FinanceTransaction::query()
-            ->selectRaw('tipe, kategori, SUM(nominal) as total')
-            ->when($request->filled('bulan'), fn ($q) => $q->whereMonth('tanggal', $request->query('bulan')))
-            ->when($request->filled('tahun'), fn ($q) => $q->whereYear('tanggal', $request->query('tahun', date('Y'))))
-            ->groupBy('tipe', 'kategori')
-            ->get();
+        $byCategory = $allTransactions->groupBy(['tipe', 'kategori'])->map(function ($itemsByTipe, $tipe) {
+            return $itemsByTipe->map(function ($items, $kategori) use ($tipe) {
+                return [
+                    'tipe' => $tipe,
+                    'kategori' => $kategori,
+                    'total' => (float) $items->sum('nominal'),
+                ];
+            })->values();
+        })->flatten(1)->values();
+
+        // Breakdown harian (daily breakdown)
+        $byDay = $allTransactions->groupBy(function ($item) {
+            return Carbon::parse($item->tanggal)->format('Y-m-d');
+        })->map(function ($items, $date) {
+            $omzet = (float) $items->where('tipe', 'pemasukan')->sum('nominal');
+            $pengeluaran = (float) $items->where('tipe', 'pengeluaran')->sum('nominal');
+            return [
+                'tanggal' => $date,
+                'omzet' => $omzet,
+                'pengeluaran' => $pengeluaran,
+                'laba' => $omzet - $pengeluaran,
+            ];
+        })->sortBy('tanggal')->values();
+
+        // Breakdown bulanan (monthly breakdown)
+        $byMonth = $allTransactions->groupBy(function ($item) {
+            return Carbon::parse($item->tanggal)->format('Y-m');
+        })->map(function ($items, $yearMonth) {
+            $omzet = (float) $items->where('tipe', 'pemasukan')->sum('nominal');
+            $pengeluaran = (float) $items->where('tipe', 'pengeluaran')->sum('nominal');
+            return [
+                'bulan' => $yearMonth,
+                'omzet' => $omzet,
+                'pengeluaran' => $pengeluaran,
+                'laba' => $omzet - $pengeluaran,
+            ];
+        })->sortBy('bulan')->values();
 
         return $this->success([
             'total_pemasukan' => $totalPemasukan,
             'total_pengeluaran' => $totalPengeluaran,
             'saldo' => $saldo,
+            'omzet' => $totalPemasukan,
+            'laba' => $saldo,
+            'breakdown_harian' => $byDay,
+            'breakdown_bulanan' => $byMonth,
             'breakdown_kategori' => $byCategory,
         ], 'Ringkasan keuangan berhasil diambil.');
     }

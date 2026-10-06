@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\OrderController;
@@ -76,12 +77,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])->middleware('role:admin,staff');
     Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->middleware('role:admin');
 
-    // Admin Finance Management
-    Route::get('/finance/summary', [FinanceController::class, 'summary']);
-    Route::get('/finance', [FinanceController::class, 'index']);
-    Route::get('/finance/{finance}', [FinanceController::class, 'show']);
-    Route::post('/finance', [FinanceController::class, 'store']);
-    Route::put('/finance/{finance}', [FinanceController::class, 'update']);
-    Route::patch('/finance/{finance}', [FinanceController::class, 'update']);
-    Route::delete('/finance/{finance}', [FinanceController::class, 'destroy']);
+    // Dashboard (Admin & Staff)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('role:admin,staff');
+
+    // Finance Management (Admin & Staff)
+    Route::get('/finance/summary', [FinanceController::class, 'summary'])->middleware('role:admin,staff');
+    Route::get('/finance', [FinanceController::class, 'index'])->middleware('role:admin,staff');
+    Route::get('/finance/{finance}', [FinanceController::class, 'show'])->middleware('role:admin,staff');
+    Route::post('/finance', [FinanceController::class, 'store'])->middleware('role:admin,staff');
+    Route::put('/finance/{finance}', [FinanceController::class, 'update'])->middleware('role:admin,staff');
+    Route::patch('/finance/{finance}', [FinanceController::class, 'update'])->middleware('role:admin,staff');
+    Route::delete('/finance/{finance}', [FinanceController::class, 'destroy'])->middleware('role:admin');
 });
