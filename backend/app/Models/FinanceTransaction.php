@@ -21,6 +21,7 @@ class FinanceTransaction extends Model
         'tanggal',
         'user_id',
         'order_id',
+        'payment_id',
     ];
 
     /**
@@ -48,6 +49,14 @@ class FinanceTransaction extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * The payment linked to this transaction (optional).
+     */
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class);
     }
 
     /**

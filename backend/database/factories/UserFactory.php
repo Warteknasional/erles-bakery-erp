@@ -46,6 +46,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * State: staff/karyawan role.
+     */
+    public function staff(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'karyawan',
+        ]);
+    }
+
+    /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static

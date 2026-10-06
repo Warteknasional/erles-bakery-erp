@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,6 +67,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('role:admin,staff');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('role:admin,staff');
     Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->middleware('role:admin');
+
+    // Payment Management (Admin & Staff)
+    Route::get('/orders/{order}/payments', [PaymentController::class, 'forOrder'])->middleware('role:admin,staff');
+    Route::post('/orders/{order}/payments', [PaymentController::class, 'store'])->middleware('role:admin,staff');
+    Route::get('/payments', [PaymentController::class, 'index'])->middleware('role:admin,staff');
+    Route::post('/payments', [PaymentController::class, 'store'])->middleware('role:admin,staff');
+    Route::get('/payments/{payment}', [PaymentController::class, 'show'])->middleware('role:admin,staff');
+    Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->middleware('role:admin');
 
     // Admin Finance Management
     Route::get('/finance/summary', [FinanceController::class, 'summary']);

@@ -23,6 +23,8 @@ class Order extends Model
         'tanggal_ambil',
         'total_price',
         'status',
+        'payment_status',
+        'paid_amount',
     ];
 
     /**
@@ -32,6 +34,7 @@ class Order extends Model
     {
         return [
             'total_price' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
             'tanggal_ambil' => 'date',
         ];
     }
@@ -50,6 +53,14 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Payments recorded for this order.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 
     /**
@@ -88,6 +99,29 @@ class Order extends Model
     public function recalculateTotal(): void
     {
         $this->total_price = $this->items()->sum('subtotal');
+        $this->saveQuietly();
+    }
+
+    public const PAYMENT_UNPAID = 'unpaid';
+    public const PAYMENT_PARTIAL = 'partial';
+    public const PAYMENT_PAID = 'paid';
+
+    /**
+     * Recalculate payment status and paid amount from payments.
+     */
+    public function recalculatePaymentStatus(): void
+    {
+        $totalPaid = (float) $this->payments()->sum('nominal');
+        $this->paid_amount = $totalPaid;
+        $orderTotal = (float) $this->total_price;
+
+        if ($totalPaid <= 0) {
+            $this->payment_status = self::PAYMENT_UNPAID;
+        } elseif ($totalPaid >= $orderTotal && $orderTotal > 0) {
+            $this->payment_status = self::PAYMENT_PAID;
+        } else {
+            $this->payment_status = self::PAYMENT_PARTIAL;
+        }
         $this->saveQuietly();
     }
 
