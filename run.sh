@@ -135,6 +135,23 @@ cmd_fresh() {
   echo -e "${GREEN}✓ Database refreshed${NC}"
 }
 
+cmd_rls() {
+  echo -e "${CYAN}${BOLD}═══════════════════════════════════════════════════════════════════${NC}"
+  echo -e "${YELLOW}${BOLD}  Panduan Mengaktifkan Row Level Security (RLS) di Supabase${NC}"
+  echo -e "${CYAN}${BOLD}═══════════════════════════════════════════════════════════════════${NC}"
+  echo ""
+  echo -e "  File SQL: ${BOLD}supabase/rls.sql${NC}"
+  echo ""
+  echo -e "  Untuk mengaktifkan RLS pada seluruh tabel di schema public:"
+  echo -e "  1. Buka dashboard Supabase: ${CYAN}https://supabase.com/dashboard/project/iohzdauarxzbcynxvgpr${NC}"
+  echo -e "  2. Buka menu ${BOLD}SQL Editor${NC} di panel sebelah kiri."
+  echo -e "  3. Buka tab baru (+), lalu salin seluruh isi dari file ${BOLD}supabase/rls.sql${NC}."
+  echo -e "  4. Klik tombol ${GREEN}Run${NC}."
+  echo ""
+  echo -e "  ${YELLOW}Catatan: Skrip ini idempotent dan aman dijalankan ulang setiap ada penambahan tabel baru.${NC}"
+  echo ""
+}
+
 cmd_help() {
   echo -e "${BOLD}Usage:${NC} ./run.sh [command]"
   echo ""
@@ -144,6 +161,7 @@ cmd_help() {
   echo -e "  ${CYAN}restart${NC}   - Restart all services (stop, then dev)"
   echo -e "  ${CYAN}logs${NC}      - View logs for all services (or specify a service: ./run.sh logs backend)"
   echo -e "  ${CYAN}fresh${NC}     - Drop all tables, re-run all migrations, and run seeders (use --force to skip confirmation)"
+  echo -e "  ${CYAN}rls${NC}       - Cetak instruksi menjalankan file RLS di Supabase SQL Editor"
   echo -e "  ${CYAN}help${NC}      - Show this help message"
   echo ""
 }
@@ -163,6 +181,9 @@ case "$COMMAND" in
     ;;
   fresh)
     cmd_fresh
+    ;;
+  rls)
+    cmd_rls
     ;;
   help)
     cmd_help
