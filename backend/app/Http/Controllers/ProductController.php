@@ -187,4 +187,43 @@ class ProductController extends Controller
 
         return $this->success(null, 'Produk berhasil dihapus.');
     }
+
+    /**
+     * Adjust stock quantity manually (add, deduct, set).
+     */
+    public function adjustStock(Request $request, Product $product): JsonResponse
+    {
+        $request->validate([
+            'jumlah' => ['required', 'integer', 'min:0'],
+            'tipe' => ['required', 'string', 'in:tambah,kurang,set'],
+            'catatan' => ['nullable', 'string', 'max:255'],
+        ], [
+            'jumlah.required' => 'Jumlah stok wajib diisi.',
+            'jumlah.integer' => 'Jumlah stok harus berupa bilangan bulat.',
+            'jumlah.min' => 'Jumlah stok tidak boleh negatif.',
+            'tipe.required' => 'Tipe penyesuaian stok wajib diisi.',
+            'tipe.in' => 'Tipe penyesuaian harus salah satu dari: tambah, kurang, set.',
+        ]);
+
+        $jumlah = (int) $request->input('jumlah');
+        $tipe = $request->input('tipe');
+
+        if ($tipe === 'tambah') {
+            $newStock = $product->stok + $jumlah;
+        } elseif ($tipe === 'kurang') {
+            if ($jumlah > $product->stok) {
+                return $this->error("Pengurangan stok ({$jumlah}) melebihi stok yang tersedia ({$product->stok}).", 422);
+            }
+            $newStock = $product->stok - $jumlah;
+        } else {
+            $newStock = $jumlah;
+        }
+
+        $product->update(['stok' => $newStock]);
+
+        return $this->success(
+            new ProductResource($product->load('category')),
+            "Stok produk '{$product->nama}' berhasil diperbarui menjadi {$newStock}."
+        );
+    }
 }

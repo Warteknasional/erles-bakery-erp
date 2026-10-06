@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin / Staff Product Management (CUD)
     Route::post('/products', [ProductController::class, 'store'])->middleware('role:admin,staff');
+    Route::post('/products/{product}/adjust-stock', [ProductController::class, 'adjustStock'])->middleware('role:admin,staff');
     Route::put('/products/{product}', [ProductController::class, 'update'])->middleware('role:admin,staff');
     Route::patch('/products/{product}', [ProductController::class, 'update'])->middleware('role:admin,staff');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->middleware('role:admin');

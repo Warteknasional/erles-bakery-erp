@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
+use App\Models\Customer;
 use App\Models\FinanceTransaction;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -21,18 +24,42 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ═══════════════════════════════════════
-        // 1. Admin user (known credentials for login)
+        // 1. Users (Admin and Staff)
         // ═══════════════════════════════════════
-        $admin = User::factory()->admin()->create([
-            'name' => 'Admin Erles',
-            'email' => 'admin@erlesbakery.com',
-            'phone' => '081234567890',
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@erlesbakery.com'],
+            [
+                'name' => 'Admin Erles',
+                'phone' => '081234567890',
+                'role' => 'admin',
+                'password' => bcrypt('password'),
+            ]
+        );
+
+        $staff = User::firstOrCreate(
+            ['email' => 'staff@erlesbakery.com'],
+            [
+                'name' => 'Staff Erles',
+                'phone' => '081234567891',
+                'role' => 'karyawan',
+                'password' => bcrypt('password'),
+            ]
+        );
 
         // ═══════════════════════════════════════
-        // 2. Products (15 items, various categories including Hampers)
+        // 2. Categories
         // ═══════════════════════════════════════
-        $products = collect([
+        $categories = [
+            'Roti' => Category::firstOrCreate(['slug' => 'roti'], ['name' => 'Roti', 'description' => 'Aneka roti tawar dan manis']),
+            'Kue' => Category::firstOrCreate(['slug' => 'kue'], ['name' => 'Kue', 'description' => 'Kue basah, bolu, dan brownies']),
+            'Kue Kering' => Category::firstOrCreate(['slug' => 'kue-kering'], ['name' => 'Kue Kering', 'description' => 'Kue toples khas hari raya']),
+            'Hampers' => Category::firstOrCreate(['slug' => 'hampers'], ['name' => 'Hampers', 'description' => 'Paket bingkisan spesial']),
+        ];
+
+        // ═══════════════════════════════════════
+        // 3. Products (15 items)
+        // ═══════════════════════════════════════
+        $productDefs = collect([
             // Roti
             ['nama' => 'Roti Tawar Gandum',      'harga' => 25000, 'kategori' => 'Roti',    'stok' => 50, 'deskripsi' => 'Roti tawar gandum utuh, lembut dan sehat.'],
             ['nama' => 'Roti Sobek Cokelat',      'harga' => 28000, 'kategori' => 'Roti',    'stok' => 40, 'deskripsi' => 'Roti sobek isi cokelat leleh, favorit anak-anak.'],
@@ -52,14 +79,17 @@ class DatabaseSeeder extends Seeder
             ['nama' => 'Hampers Premium Gold',     'harga' => 450000,'kategori' => 'Hampers', 'stok' => 10, 'deskripsi' => 'Paket premium: Lapis Legit, 2 toples kue kering, Brownies, dalam box gold.'],
             ['nama' => 'Hampers Natal Joy',        'harga' => 350000,'kategori' => 'Hampers', 'stok' => 12, 'deskripsi' => 'Paket Natal: Cheesecake, Brownies, 2 toples kue kering, dengan dekorasi Natal.'],
             ['nama' => 'Hampers Mini Gift',        'harga' => 150000,'kategori' => 'Hampers', 'stok' => 20, 'deskripsi' => 'Paket mini berisi 1 toples kue kering dan 1 Brownies, cocok untuk oleh-oleh.'],
-        ])->map(function ($data) {
+        ]);
+
+        $products = $productDefs->map(function ($data) use ($categories) {
             $data['slug'] = Str::slug($data['nama']);
             $data['is_active'] = true;
+            $data['category_id'] = $categories[$data['kategori']]?->id;
             return Product::create($data);
         });
 
         // ═══════════════════════════════════════
-        // 3. Orders with items (5 orders, various statuses)
+        // 4. Orders with items (5 orders)
         // ═══════════════════════════════════════
         $orderData = [
             [
@@ -79,7 +109,7 @@ class DatabaseSeeder extends Seeder
                 'customer_phone' => '085712345678',
                 'alamat' => 'Jl. Pahlawan No. 25, Bandung',
                 'tanggal_ambil' => now()->addDays(1)->toDateString(),
-                'status' => 'diproses',
+                'status' => 'processing',
                 'catatan' => null,
                 'items' => [
                     ['product_index' => 11, 'qty' => 1], // Hampers Lebaran
@@ -91,7 +121,7 @@ class DatabaseSeeder extends Seeder
                 'customer_phone' => '087654321098',
                 'alamat' => null, // Ambil di toko
                 'tanggal_ambil' => now()->subDays(2)->toDateString(),
-                'status' => 'selesai',
+                'status' => 'completed',
                 'catatan' => 'Ambil di toko jam 10 pagi.',
                 'items' => [
                     ['product_index' => 12, 'qty' => 1], // Hampers Premium Gold
@@ -115,7 +145,7 @@ class DatabaseSeeder extends Seeder
                 'customer_phone' => '089876543210',
                 'alamat' => 'Jl. Gatot Subroto No. 88, Semarang',
                 'tanggal_ambil' => now()->subDays(5)->toDateString(),
-                'status' => 'dibatalkan',
+                'status' => 'cancelled',
                 'catatan' => 'Batal karena perubahan jadwal acara.',
                 'items' => [
                     ['product_index' => 13, 'qty' => 3], // Hampers Natal x3
@@ -132,6 +162,8 @@ class DatabaseSeeder extends Seeder
                 'catatan' => $data['catatan'],
                 'tanggal_ambil' => $data['tanggal_ambil'],
                 'status' => $data['status'],
+                'payment_status' => 'unpaid',
+                'paid_amount' => 0,
             ]);
 
             foreach ($data['items'] as $item) {
@@ -149,11 +181,23 @@ class DatabaseSeeder extends Seeder
         }
 
         // ═══════════════════════════════════════
-        // 4. Finance Transactions
+        // 5. Finance Transactions & Payment
         // ═══════════════════════════════════════
         // Pemasukan dari pesanan selesai
-        $completedOrder = Order::where('status', 'selesai')->first();
+        $completedOrder = Order::whereIn('status', ['completed', 'selesai'])->first();
         if ($completedOrder) {
+            $payment = Payment::create([
+                'order_id' => $completedOrder->id,
+                'user_id' => $admin->id,
+                'nominal' => $completedOrder->total_price,
+                'metode' => 'transfer',
+                'tipe' => 'lunas',
+                'tanggal' => $completedOrder->updated_at->toDateString(),
+                'catatan' => "Pembayaran pesanan {$completedOrder->kode_pesanan}",
+            ]);
+
+            $completedOrder->recalculatePaymentStatus();
+
             FinanceTransaction::create([
                 'tipe' => 'pemasukan',
                 'nominal' => $completedOrder->total_price,
@@ -162,10 +206,11 @@ class DatabaseSeeder extends Seeder
                 'tanggal' => $completedOrder->updated_at->toDateString(),
                 'user_id' => $admin->id,
                 'order_id' => $completedOrder->id,
+                'payment_id' => $payment->id,
             ]);
         }
 
-        // Pengeluaran operasional
+        // Pengeluaran operasional (5 transaksi)
         $expenses = [
             ['nominal' => 500000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian tepung terigu 25kg',              'tanggal' => now()->subDays(10)->toDateString()],
             ['nominal' => 350000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian mentega & margarin',              'tanggal' => now()->subDays(8)->toDateString()],

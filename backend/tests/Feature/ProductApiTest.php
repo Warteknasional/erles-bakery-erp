@@ -186,4 +186,51 @@ class ProductApiTest extends TestCase
             ->deleteJson("/api/categories/{$catId}");
         $delFail->assertStatus(422);
     }
+
+    public function test_admin_and_staff_can_adjust_product_stock(): void
+    {
+        $staff = User::where('role', 'karyawan')->first() ?? User::factory()->staff()->create();
+        $staffToken = $staff->createToken('staff_token')->plainTextToken;
+
+        $product = Product::first();
+        $initialStock = $product->stok;
+
+        // 1. Tambah stok (+10)
+        $resAdd = $this->withHeader('Authorization', "Bearer {$staffToken}")
+            ->postJson("/api/products/{$product->id}/adjust-stock", [
+                'jumlah' => 10,
+                'tipe' => 'tambah',
+                'catatan' => 'Restock pagi',
+            ]);
+        $resAdd->assertStatus(200)
+            ->assertJsonPath('data.stok', $initialStock + 10);
+
+        // 2. Kurang stok (-5)
+        $resSub = $this->withHeader('Authorization', "Bearer {$staffToken}")
+            ->postJson("/api/products/{$product->id}/adjust-stock", [
+                'jumlah' => 5,
+                'tipe' => 'kurang',
+                'catatan' => 'Rusak/rusak saat display',
+            ]);
+        $resSub->assertStatus(200)
+            ->assertJsonPath('data.stok', $initialStock + 5);
+
+        // 3. Kurang melebihi stok -> 422
+        $resOver = $this->withHeader('Authorization', "Bearer {$staffToken}")
+            ->postJson("/api/products/{$product->id}/adjust-stock", [
+                'jumlah' => 999999,
+                'tipe' => 'kurang',
+            ]);
+        $resOver->assertStatus(422)
+            ->assertJsonPath('success', false);
+
+        // 4. Set stok ke 30
+        $resSet = $this->withHeader('Authorization', "Bearer {$staffToken}")
+            ->postJson("/api/products/{$product->id}/adjust-stock", [
+                'jumlah' => 30,
+                'tipe' => 'set',
+            ]);
+        $resSet->assertStatus(200)
+            ->assertJsonPath('data.stok', 30);
+    }
 }

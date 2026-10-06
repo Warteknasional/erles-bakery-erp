@@ -70,4 +70,14 @@ class Customer extends Model
             'total_spent' => 0,
         ]);
     }
+
+    /**
+     * Recalculate total_orders and total_spent.
+     */
+    public function updateOrderStats(): void
+    {
+        $this->total_orders = $this->orders()->count();
+        $this->total_spent = (float) $this->orders()->sum('total_price');
+        $this->saveQuietly();
+    }
 }
