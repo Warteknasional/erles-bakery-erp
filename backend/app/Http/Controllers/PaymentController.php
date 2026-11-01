@@ -151,6 +151,17 @@ class PaymentController extends Controller
             return $payment;
         });
 
+        // Dispatch Telegram notification to owner/admin after transaction commits
+        dispatch(new \App\Jobs\SendTelegramNotificationJob('payment', $payment->id))->afterCommit();
+
+        // Notify WhatsApp customer if order was made via WhatsApp
+        if ($order->source === 'whatsapp' && !empty($order->customer_phone)) {
+            $nominalFormatted = 'Rp ' . number_format($nominal, 0, ',', '.');
+            $statusBayar = ucfirst($order->payment_status ?? 'unpaid');
+            $msg = "Halo *{$order->customer_name}*, pembayaran sebesar *{$nominalFormatted}* untuk pesanan *{$order->kode_pesanan}* telah kami terima. Status pembayaran: *{$statusBayar}*. Terima kasih!";
+            app(\App\Services\WahaClient::class)->queueText($order->customer_phone, $msg);
+        }
+
         $payment->load(['order', 'user']);
 
         return $this->success(

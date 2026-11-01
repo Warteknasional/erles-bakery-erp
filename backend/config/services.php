@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id' => env('TELEGRAM_CHAT_ID'),
+    ],
+
+    'waha' => [
+        'url' => env('WAHA_URL'),
+        'session' => env('WAHA_SESSION', 'default'),
+        'api_key' => env('WAHA_API_KEY'),
+        'webhook_secret' => env('WAHA_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -118,6 +118,9 @@ class OrderController extends Controller
             return $order;
         });
 
+        // Dispatch Telegram notification to owner/admin after transaction commits
+        dispatch(new \App\Jobs\SendTelegramNotificationJob('order', $order->id))->afterCommit();
+
         return $this->success(
             new OrderResource($order),
             'Pesanan berhasil dibuat. Kami akan segera menghubungi Anda.',
@@ -186,6 +189,13 @@ class OrderController extends Controller
         });
 
         $order->load(['items.product', 'customer']);
+
+        // Notify WhatsApp customer if order was made via WhatsApp
+        if ($order->source === 'whatsapp' && !empty($order->customer_phone)) {
+            $statusLabel = ucfirst($newStatus);
+            $msg = "Halo *{$order->customer_name}*, status pesanan Anda *{$order->kode_pesanan}* telah diperbarui menjadi: *{$statusLabel}*. Terima kasih!";
+            app(\App\Services\WahaClient::class)->queueText($order->customer_phone, $msg);
+        }
 
         return $this->success(
             new OrderResource($order),
