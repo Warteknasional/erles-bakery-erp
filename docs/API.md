@@ -552,3 +552,112 @@ Dokumentasi resmi RESTful API **Erles Bakery ERP** yang dikonsumsi oleh:
   "environment": "local"
 }
 ```
+
+
+---
+
+## 🤖 8. Notifikasi Telegram (Owner / Admin)
+
+Backend menyediakan integrasi bot Telegram via service `App\Services\TelegramNotifier` yang dieksekusi secara asinkron menggunakan queue job `App\Jobs\SendTelegramNotificationJob` dengan mekanisme `afterCommit`.
+
+### Event Trigger Otomatis:
+1. **Pesanan Baru Masuk (`POST /api/orders`)**:
+   - Kode Pesanan unik (`kode_pesanan`)
+   - Identitas Pelanggan (`customer_name` & `customer_phone`)
+   - Daftar Item Produk (nama produk, kuantitas, subtotal)
+   - Metode Pengambilan / Pengiriman (`alamat` / Ambil di Toko)
+   - Tanggal Ambil / Kirim (`tanggal_ambil`)
+   - Total Belanja (`total_price`)
+   - Catatan tambahan dari pembeli
+
+2. **Pembayaran Tercatat (`POST /api/orders/{order}/payments` & `POST /api/payments`)**:
+   - Kode Pesanan terkait (`kode_pesanan`)
+   - Nominal Pembayaran (`nominal`)
+   - Metode & Tipe Pembayaran (misal: `TRANSFER (DP)` atau `CASH (LUNAS)`)
+   - Status Bayar Pesanan (`payment_status`: `unpaid`, `partial`, `paid`)
+   - Tanggal transaksi
+
+### Konfigurasi Variabel Lingkungan (`.env`):
+```env
+# Token API bot dari @BotFather
+TELEGRAM_BOT_TOKEN=7123456789:AAH...
+
+# ID Chat atau ID Grup tujuan
+TELEGRAM_CHAT_ID=123456789
+```
+
+### Panduan Setup Telegram Bot:
+1. **Buat Bot via BotFather:**
+   - Cari akun **[@BotFather](https://t.me/BotFather)** di aplikasi Telegram.
+   - Ketik `/newbot`, lalu masukkan nama dan username bot.
+   - Salin **HTTP API Token** yang diberikan ke `TELEGRAM_BOT_TOKEN`.
+2. **Ambil Chat ID:**
+   - **Personal Chat:** Kirim pesan `/start` ke bot Anda, lalu gunakan **[@userinfobot](https://t.me/userinfobot)** untuk melihat ID Anda.
+   - **Grup Tim:** Masukkan bot ke grup, jadikan admin, kirim 1 pesan, lalu buka URL `https://api.telegram.org/bot<TOKEN_ANDA>/getUpdates` di browser untuk mengambil `"chat":{"id": -100xxxxxxxxxx}`. Masukkan ID tersebut ke `TELEGRAM_CHAT_ID`.
+3. **Ketahanan Sistem (Fault Tolerance):**
+   - Jika token atau chat id kosong, sistem melewati (*skip*) notifikasi tanpa melempar error.
+   - Jika Telegram API mengalami gangguan/timeout (5 detik), pesanan pelanggan dan pembayaran tetap sukses tersimpan di database.
+
+
+---
+
+## 📱 9. Integrasi WhatsApp Bot & Webhook WAHA
+
+Backend Erles Bakery ERP mengintegrasikan **WAHA (WhatsApp HTTP API)** untuk memfasilitasi pemesanan interaktif pelanggan via WhatsApp dan pembaruan status pesanan secara otomatis.
+
+> [!NOTE]
+> **Kebijakan & Scope Notifikasi:**
+> - **Owner / Admin**: Notifikasi pesanan baru dan pencatatan pembayaran **TETAP** dikirimkan via **Telegram Bot**.
+> - **Pelanggan**: Notifikasi WhatsApp **HANYA** dikirimkan kepada pelanggan yang memesan melalui WhatsApp (`orders.source = 'whatsapp'`).
+
+---
+
+### Endpoint Webhook WAHA
+- **URL**: `POST /api/webhooks/waha`
+- **Auth**: Header `X-Webhook-Secret: <WAHA_WEBHOOK_SECRET>` (jika dikonfigurasi). Menghasilkan `401 Unauthorized` bila secret tidak cocok.
+- **Filter Otomatis**: Pesan dari bot sendiri (`fromMe: true`) dan pesan dari WhatsApp Group (`@g.us`) diabaikan secara otomatis (`200 OK`).
+
+---
+
+### Alur Percakapan Interaktif (Stateful Bot):
+Sesi percakapan disimpan dalam tabel `wa_sessions` dengan masa aktif kedaluwarsa 30 menit.
+
+1. **`menu`**
+   - Menampilkan daftar produk aktif beserta harga satuan terkini (diambil dari database).
+2. **`pesan`**
+   - Memulai pembuatan pesanan baru langkah demi langkah:
+     - **Pilih Produk**: Ketik nomor produk (contoh: `1`) atau nama produk.
+     - **Jumlah (Qty)**: Ketik angka jumlah pesanan (contoh: `2`).
+     - **Nama Pelanggan**: Ketik nama lengkap pemesan.
+     - **Tanggal Ambil/Kirim**: Ketik tanggal rencana (contoh: `2026-11-05` atau `besok`).
+     - **Ringkasan**: Bot menampilkan rincian pesanan dan total harga, lalu meminta konfirmasi `ya` atau `batal`.
+3. **Konfirmasi `ya`**
+   - Pesanan disimpan ke database dengan `source = 'whatsapp'`.
+   - Perhitungan harga dilakukan secara aman di sisi server.
+   - Data pelanggan (`customers`) dibuat/diperbarui otomatis berdasarkan nomor WhatsApp.
+   - Bot membalas dengan kode pesanan unik (contoh: `ORD-20261101-0001`).
+   - Memicu notifikasi Telegram ke grup/akun owner secara otomatis.
+4. **`cek <kode_pesanan>`**
+   - Menampilkan status pesanan (contoh: `PENDING`, `PROCESSING`, `READY`, `COMPLETED`) dan status pembayaran (`UNPAID`, `PARTIAL`, `PAID`).
+   - Contoh: `cek ORD-20261101-0001`.
+5. **`batal`**
+   - Membatalkan sesi pemesanan aktif yang sedang berlangsung.
+
+---
+
+### Notifikasi Otomatis ke Pelanggan WhatsApp:
+Khusus pesanan dengan `source = 'whatsapp'`:
+1. **Perubahan Status Pesanan**: Dikirim saat admin memperbarui status pesanan di `PUT/PATCH /api/orders/{id}/status`.
+2. **Pencatatan Pembayaran**: Dikirim saat kasir/admin mencatat pembayaran di `POST /api/orders/{id}/payments`.
+
+---
+
+### Konfigurasi Variabel Lingkungan (`.env`):
+```env
+# WAHA (WhatsApp HTTP API)
+WAHA_URL=http://waha:3000
+WAHA_SESSION=default
+WAHA_API_KEY=
+WAHA_WEBHOOK_SECRET=
+```
+Semua permintaan ke WAHA dikirim secara asinkron (`afterCommit`) dengan timeout 5 detik. Jika WAHA mati atau mengalami error, transaksi bisnis pesanan dan pembayaran di database **tetap berjalan sukses tanpa hambatan**.
