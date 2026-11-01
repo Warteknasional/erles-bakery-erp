@@ -38,11 +38,14 @@ class ProductController extends Controller
 
         // Filter by active status
         if ($request->has('is_active')) {
-            $isActive = filter_var($request->query('is_active'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($isActive !== null) {
-                $query->where('is_active', $isActive);
+            $val = $request->query('is_active');
+            if ($val !== 'all' && $val !== '') {
+                $isActive = filter_var($val, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                if ($isActive !== null) {
+                    $query->where('is_active', $isActive);
+                }
             }
-        } elseif (!$request->user()) {
+        } elseif (!$request->user('sanctum')) {
             // By default, public visitors only see active products
             $query->where('is_active', true);
         }

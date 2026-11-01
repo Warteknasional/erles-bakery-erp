@@ -86,6 +86,10 @@ Script pintar `run.sh` ini bertindak sebagai **CLI task runner** dengan berbagai
 | **Admin Panel**  | http://localhost:5174          |
 | **Website Publik** | http://localhost:5173        |
 | **PostgreSQL**   | localhost:5432                 |
+| **Queue Worker** | Background worker (`erles_queue_worker`) |
+
+> [!NOTE]
+> Queue worker (`erles_queue_worker`) berjalan otomatis lewat `docker compose up` untuk memproses job Telegram dan WhatsApp secara asinkron.
 
 ## Skema Database
 
@@ -96,6 +100,36 @@ Script pintar `run.sh` ini bertindak sebagai **CLI task runner** dengan berbagai
 | `orders`               | Pesanan pelanggan                            |
 | `order_items`          | Detail item per pesanan                      |
 | `finance_transactions` | Catatan kas masuk/keluar                     |
+
+## 🤖 Notifikasi Telegram (Owner / Admin)
+
+Backend terintegrasi dengan bot Telegram untuk mengirimkan notifikasi otomatis secara real-time ke owner/admin saat:
+1. **Pesanan baru masuk dari website publik** (kode pesanan, nama pelanggan, daftar item, total harga, metode ambil/kirim, dan tanggal ambil).
+2. **Pembayaran pesanan tercatat** (kode pesanan, nominal pembayaran, metode, dan status pelunasan).
+
+### Panduan Setup Bot Telegram:
+
+1. **Buat Bot Baru via BotFather:**
+   - Buka Telegram dan cari akun resmi **[@BotFather](https://t.me/BotFather)**.
+   - Kirim perintah `/newbot`.
+   - Masukkan nama bot (misal: `Erles Bakery Notifier`) dan username bot yang berakhiran `bot` (misal: `erles_bakery_notif_bot`).
+   - BotFather akan memberikan **HTTP API Token** (contoh: `7123456789:AAH...`). Salin token ini ke variabel `TELEGRAM_BOT_TOKEN`.
+
+2. **Dapatkan Chat ID (Tujuan Notifikasi):**
+   - **Opsi A (Personal Chat):** Cari bot yang baru Anda buat di Telegram, lalu klik **Start** (`/start`). Buka akun **[@userinfobot](https://t.me/userinfobot)** untuk melihat `Id` Telegram Anda (contoh: `123456789`).
+   - **Opsi B (Grup Tim / Owner):** Masukkan bot Anda ke grup Telegram tim/owner, jadikan bot sebagai admin grup, kirim 1 pesan apa saja di grup, lalu buka browser:
+     ```
+     https://api.telegram.org/bot<TOKEN_ANDA>/getUpdates
+     ```
+     Cari nilai `"chat":{"id": -100xxxxxxxxxx}`. Salin angka ID tersebut (termasuk tanda minus `-` jika berupa grup) ke variabel `TELEGRAM_CHAT_ID`.
+
+3. **Konfigurasi Environment:**
+   Masukkan ke file `.env` (atau `backend/.env`):
+   ```env
+   TELEGRAM_BOT_TOKEN=7123456789:AAH...
+   TELEGRAM_CHAT_ID=123456789
+   ```
+   *Catatan: Jika variabel ini dikosongkan, sistem akan otomatis melewati (skip) pengiriman notifikasi secara hening tanpa menyebabkan error atau mengganggu pembuatan pesanan.*
 
 ## Workflow Git Submodule untuk Tim
 
@@ -156,12 +190,44 @@ docker compose down -v
 docker compose exec backend php artisan <command>
 ```
 
+## 📱 Integrasi WAHA (WhatsApp HTTP API)
+
+Layanan WAHA dijalankan via Docker Compose (`erles_waha`) di jaringan internal Docker untuk memfasilitasi bot WhatsApp pemesanan pelanggan. Notifikasi owner/admin **tetap** dikirimkan melalui bot Telegram.
+
+### 1. Konfigurasi Variabel Lingkungan (`.env`)
+Salin variabel WAHA dari `.env.example` ke file `.env` Anda:
+```env
+WAHA_URL=http://waha:3000
+WAHA_SESSION=default
+WAHA_API_KEY=
+WAHA_WEBHOOK_SECRET=
+```
+
+### 2. Cara Scan QR Code WhatsApp Session
+Untuk menghubungkan nomor WhatsApp toko ke engine WAHA:
+1. Pastikan layanan WAHA telah berjalan:
+   ```bash
+   docker compose up -d waha
+   ```
+2. Buka dashboard web WAHA di browser (atau sementara expose port `3000:3000` di `docker-compose.yml` untuk akses visual):
+   - Buka `http://localhost:3000/dashboard`
+   - Pada session `default`, klik tombol **Start** lalu **Scan QR**.
+   - Buka WhatsApp di smartphone Anda: **Perangkat Tertaut (Linked Devices) > Tautkan Perangkat**, lalu arahkan kamera ke QR Code di layar.
+3. Setelah status session berubah menjadi **`WORKING`**, webhook secara otomatis terhubung ke `/api/webhooks/waha` pada backend Laravel.
+4. Pelanggan kini dapat berinteraksi dengan mengetik:
+   - `menu` : Melihat daftar produk aktif & harga
+   - `pesan` : Alur interaktif memilih produk, kuantitas, nama, dan tanggal
+   - `cek <kode>` : Mengecek status pesanan dan pembayaran
+   - `batal` : Membatalkan sesi aktif
+
 ## Teknologi
 
 - **Backend**: Laravel 13, PHP 8.2, Laravel Sanctum
 - **Database**: PostgreSQL 16
 - **Frontend Admin**: React 19, Vite, Axios, React Router, Lucide Icons
 - **Frontend Public**: React 19, Vite, Axios, React Router, Lucide Icons
+- **Notifikasi Owner/Admin**: Telegram Bot API
+- **Bot Pelanggan WA**: WAHA (WhatsApp HTTP API)
 - **Orkestrasi**: Docker Compose
 
 ## Lisensi

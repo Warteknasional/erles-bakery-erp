@@ -38,6 +38,10 @@ Route::middleware('throttle:public-api')->group(function () {
 // Public Order Placement
 Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:public-order');
 
+// WAHA WhatsApp Webhook
+Route::post('/webhooks/waha', [\App\Http\Controllers\WahaWebhookController::class, 'handle'])
+    ->middleware('throttle:waha-webhook');
+
 // ─────────────────────────────────────────────────────────────
 // Protected Admin & Staff Routes (Sanctum)
 // ─────────────────────────────────────────────────────────────

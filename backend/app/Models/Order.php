@@ -23,6 +23,7 @@ class Order extends Model
         'tanggal_ambil',
         'total_price',
         'status',
+        'source',
         'payment_status',
         'paid_amount',
     ];
