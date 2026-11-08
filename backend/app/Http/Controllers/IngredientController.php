@@ -120,5 +120,63 @@ class IngredientController extends Controller
 
         return $this->success(null, 'Bahan baku berhasil dihapus');
     }
+
+    /**
+     * Display history of ingredient deductions from production orders.
+     */
+    public function history(): JsonResponse
+    {
+        $orders = \App\Models\Order::with(['items.product.ingredients'])
+            ->where(function ($q) {
+                $q->whereNotNull('ingredients_deducted_at')
+                  ->orWhereIn('status', ['processing', 'diproses', 'ready', 'completed', 'selesai']);
+            })
+            ->orderByRaw('COALESCE(ingredients_deducted_at, updated_at) DESC')
+            ->limit(30)
+            ->get();
+
+        $logs = $orders->map(function (\App\Models\Order $order) {
+            $deductedMap = [];
+            $productsSummary = [];
+
+            foreach ($order->items as $item) {
+                $prod = $item->product;
+                $qty = max(1, (int) $item->qty);
+                $prodName = $prod ? $prod->nama : 'Produk Bakery';
+                $productsSummary[] = "{$prodName} ({$qty}x)";
+
+                if ($prod && $prod->ingredients && $prod->ingredients->isNotEmpty()) {
+                    foreach ($prod->ingredients as $ing) {
+                        $used = round(((float) ($ing->pivot->qty_used ?? 0.1)) * $qty, 2);
+                        if ($used <= 0) {
+                            continue;
+                        }
+                        if (!isset($deductedMap[$ing->id])) {
+                            $deductedMap[$ing->id] = [
+                                'id' => $ing->id,
+                                'kode' => $ing->kode,
+                                'nama' => $ing->nama,
+                                'qty' => 0.0,
+                                'satuan' => $ing->satuan,
+                            ];
+                        }
+                        $deductedMap[$ing->id]['qty'] = round($deductedMap[$ing->id]['qty'] + $used, 2);
+                    }
+                }
+            }
+
+            return [
+                'order_id' => $order->id,
+                'kode_pesanan' => $order->kode_pesanan,
+                'customer_name' => $order->customer_name,
+                'status' => \App\Models\Order::normalizeStatus($order->status),
+                'deducted_at' => ($order->ingredients_deducted_at ?? $order->updated_at)?->toIso8601String(),
+                'products' => $productsSummary,
+                'ingredients' => array_values($deductedMap),
+            ];
+        })->filter(fn ($log) => !empty($log['ingredients']))->values();
+
+        return $this->success($logs, 'Riwayat pemakaian bahan baku produksi berhasil diambil.');
+    }
 }
 

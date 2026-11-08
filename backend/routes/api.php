@@ -99,5 +99,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/finance/{finance}', [FinanceController::class, 'destroy'])->middleware('role:admin');
 
     // Ingredient / Raw Materials Management (Admin & Staff)
+    Route::get('/ingredients/history', [\App\Http\Controllers\IngredientController::class, 'history'])->middleware('role:admin,staff');
     Route::apiResource('/ingredients', \App\Http\Controllers\IngredientController::class)->middleware('role:admin,staff');
 });

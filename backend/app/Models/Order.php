@@ -23,6 +23,7 @@ class Order extends Model
         'tanggal_ambil',
         'total_price',
         'status',
+        'ingredients_deducted_at',
         'source',
         'payment_status',
         'paid_amount',
@@ -37,6 +38,7 @@ class Order extends Model
             'total_price' => 'decimal:2',
             'paid_amount' => 'decimal:2',
             'tanggal_ambil' => 'date',
+            'ingredients_deducted_at' => 'datetime',
         ];
     }
 
@@ -190,5 +192,88 @@ class Order extends Model
     public function scopeStatus($query, string $status)
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * Automatically deduct raw material ingredients when order enters production.
+     *
+     * @return list<string> Formatted summary of deducted ingredients
+     */
+    public function deductIngredientsIfNeeded(): array
+    {
+        if ($this->ingredients_deducted_at !== null) {
+            return [];
+        }
+
+        $this->loadMissing('items.product.ingredients');
+
+        // Map ingredient_id => ['ingredient' => Ingredient, 'qty' => float]
+        $deductions = [];
+
+        foreach ($this->items as $item) {
+            $product = $item->product;
+            $orderQty = max(1, (int) $item->qty);
+
+            if ($product && $product->ingredients && $product->ingredients->isNotEmpty()) {
+                foreach ($product->ingredients as $ingredient) {
+                    $qtyUsed = (float) ($ingredient->pivot->qty_used ?? 0.1);
+                    $totalUsed = round($qtyUsed * $orderQty, 2);
+                    if ($totalUsed <= 0) {
+                        continue;
+                    }
+
+                    if (!isset($deductions[$ingredient->id])) {
+                        $deductions[$ingredient->id] = [
+                            'ingredient' => $ingredient,
+                            'qty' => 0.0,
+                        ];
+                    }
+                    $deductions[$ingredient->id]['qty'] = round($deductions[$ingredient->id]['qty'] + $totalUsed, 2);
+                }
+            } else {
+                // Fallback default recipe if product doesn't have custom BOM rows yet
+                $defaultCodes = [
+                    'BHN-001' => 0.25, // Tepung Terigu
+                    'BHN-002' => 0.10, // Butter
+                    'BHN-003' => 0.10, // Gula Pasir
+                ];
+                $fallbackIngredients = Ingredient::whereIn('kode', array_keys($defaultCodes))->get();
+                foreach ($fallbackIngredients as $ingredient) {
+                    $qtyUsed = $defaultCodes[$ingredient->kode] ?? 0.1;
+                    $totalUsed = round($qtyUsed * $orderQty, 2);
+
+                    if (!isset($deductions[$ingredient->id])) {
+                        $deductions[$ingredient->id] = [
+                            'ingredient' => $ingredient,
+                            'qty' => 0.0,
+                        ];
+                    }
+                    $deductions[$ingredient->id]['qty'] = round($deductions[$ingredient->id]['qty'] + $totalUsed, 2);
+                }
+            }
+        }
+
+        if (empty($deductions)) {
+            return [];
+        }
+
+        $summary = [];
+        foreach ($deductions as $entry) {
+            /** @var Ingredient $ing */
+            $ing = $entry['ingredient'];
+            $used = (float) $entry['qty'];
+
+            // Refresh model for latest stock inside transaction
+            $ing->refresh();
+            $ing->stok = max(0, round(((float) $ing->stok) - $used, 2));
+            $ing->save();
+
+            $summary[] = "{$ing->nama} (-{$used} {$ing->satuan})";
+        }
+
+        $this->ingredients_deducted_at = now();
+        $this->saveQuietly();
+
+        return $summary;
     }
 }

@@ -160,7 +160,9 @@ class OrderController extends Controller
             return $this->error("Transisi status dari '{$oldStatus}' ke '{$newStatus}' tidak diizinkan.", 422);
         }
 
-        DB::transaction(function () use ($order, $newStatus, $oldStatus, $request) {
+        $deductedSummary = [];
+
+        DB::transaction(function () use ($order, $newStatus, $oldStatus, $request, &$deductedSummary) {
             $updateData = ['status' => $newStatus];
             if ($request->filled('catatan')) {
                 $updateData['catatan'] = trim($order->catatan . "\n[Status: {$newStatus}] " . $request->validated('catatan'));
@@ -168,8 +170,19 @@ class OrderController extends Controller
 
             $order->update($updateData);
 
+            // Auto-deduct raw material ingredients when order enters production (processing / ready / completed)
+            $normalizedNew = Order::normalizeStatus($newStatus);
+            if (in_array($normalizedNew, ['processing', 'ready', 'completed'], true)) {
+                $deductedSummary = $order->deductIngredientsIfNeeded();
+                if (!empty($deductedSummary)) {
+                    $deductNote = '[Produksi Dapur] Bahan baku terpakai: ' . implode(', ', $deductedSummary);
+                    $order->catatan = trim($order->catatan . "\n" . $deductNote);
+                    $order->saveQuietly();
+                }
+            }
+
             // If transitioned to completed/selesai, auto-create finance transaction if not exists
-            $isComplete = in_array(Order::normalizeStatus($newStatus), ['completed', 'selesai']);
+            $isComplete = in_array($normalizedNew, ['completed', 'selesai']);
             $wasComplete = in_array(Order::normalizeStatus($oldStatus), ['completed', 'selesai']);
 
             if ($isComplete && !$wasComplete) {
@@ -197,9 +210,14 @@ class OrderController extends Controller
             app(\App\Services\WahaClient::class)->queueText($order->customer_phone, $msg);
         }
 
+        $responseMessage = "Status pesanan berhasil diperbarui menjadi '{$newStatus}'.";
+        if (!empty($deductedSummary)) {
+            $responseMessage .= ' Stok bahan baku dapur otomatis dikurangi: ' . implode(', ', $deductedSummary) . '.';
+        }
+
         return $this->success(
             new OrderResource($order),
-            "Status pesanan berhasil diperbarui menjadi '{$newStatus}'."
+            $responseMessage
         );
     }
 

@@ -59,5 +59,15 @@ class Ingredient extends Model
      * Append accessors to array/JSON output.
      */
     protected $appends = ['status'];
+
+    /**
+     * Products that use this ingredient in their recipe.
+     */
+    public function products(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'product_ingredient')
+            ->withPivot('qty_used')
+            ->withTimestamps();
+    }
 }
 

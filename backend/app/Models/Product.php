@@ -54,6 +54,16 @@ class Product extends Model
     }
 
     /**
+     * Raw material ingredients required to produce 1 unit of this product (BOM).
+     */
+    public function ingredients(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Ingredient::class, 'product_ingredient')
+            ->withPivot('qty_used')
+            ->withTimestamps();
+    }
+
+    /**
      * Scope: only active products.
      */
     public function scopeActive($query)

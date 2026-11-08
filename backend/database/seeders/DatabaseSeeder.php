@@ -281,5 +281,54 @@ class DatabaseSeeder extends Seeder
                 Ingredient::create($ing);
             }
         }
+
+        // ═══════════════════════════════════════
+        // 7. Bill of Materials / Resep Produk (product_ingredient)
+        // ═══════════════════════════════════════
+        $ingByKode = Ingredient::all()->keyBy('kode');
+        if ($ingByKode->isNotEmpty()) {
+            $categoryRecipes = [
+                'Roti' => [
+                    'BHN-001' => 0.35, // Tepung Terigu
+                    'BHN-002' => 0.15, // Butter Unsalted
+                    'BHN-004' => 0.05, // Ragi Instan
+                    'BHN-006' => 0.20, // Susu UHT
+                ],
+                'Kue' => [
+                    'BHN-001' => 0.25, // Tepung Terigu
+                    'BHN-003' => 0.20, // Gula Pasir
+                    'BHN-005' => 0.25, // Coklat Batang
+                    'BHN-007' => 0.30, // Telur Ayam
+                ],
+                'Kue Kering' => [
+                    'BHN-001' => 0.40, // Tepung Terigu
+                    'BHN-002' => 0.25, // Butter Unsalted
+                    'BHN-008' => 0.20, // Keju Cheddar
+                    'BHN-013' => 0.15, // Almond Slice
+                ],
+                'Hampers' => [
+                    'BHN-001' => 0.80, // Tepung Terigu
+                    'BHN-002' => 0.50, // Butter Unsalted
+                    'BHN-003' => 0.40, // Gula Pasir
+                    'BHN-005' => 0.40, // Coklat Batang
+                    'BHN-007' => 0.50, // Telur Ayam
+                ],
+            ];
+
+            foreach (Product::with('ingredients')->get() as $prod) {
+                if ($prod->ingredients->isEmpty()) {
+                    $recipe = $categoryRecipes[$prod->kategori] ?? $categoryRecipes['Roti'];
+                    $syncData = [];
+                    foreach ($recipe as $kode => $qtyUsed) {
+                        if (isset($ingByKode[$kode])) {
+                            $syncData[$ingByKode[$kode]->id] = ['qty_used' => $qtyUsed];
+                        }
+                    }
+                    if (!empty($syncData)) {
+                        $prod->ingredients()->syncWithoutDetaching($syncData);
+                    }
+                }
+            }
+        }
     }
 }
