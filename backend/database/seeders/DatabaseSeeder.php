@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\FinanceTransaction;
+use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -254,6 +255,31 @@ class DatabaseSeeder extends Seeder
                 'tanggal' => now()->subDays(3)->toDateString(),
                 'user_id' => $admin->id,
             ]);
+        }
+
+        // ═══════════════════════════════════════
+        // 6. Ingredients (Bahan Baku)
+        // ═══════════════════════════════════════
+        if (Ingredient::count() === 0) {
+            $ingredients = [
+                ['kode' => 'BHN-001', 'nama' => 'Tepung Terigu Protein Tinggi', 'kategori' => 'Tepung', 'stok' => 15, 'satuan' => 'kg', 'minimum_stok' => 25],
+                ['kode' => 'BHN-002', 'nama' => 'Butter Unsalted (Mentega Tawar)', 'kategori' => 'Lemak & Butter', 'stok' => 4, 'satuan' => 'kg', 'minimum_stok' => 10],
+                ['kode' => 'BHN-003', 'nama' => 'Gula Pasir Kristal Putih', 'kategori' => 'Pemanis', 'stok' => 12, 'satuan' => 'kg', 'minimum_stok' => 15],
+                ['kode' => 'BHN-004', 'nama' => 'Ragi Instan Saf-Instant', 'kategori' => 'Pengembang', 'stok' => 3, 'satuan' => 'box', 'minimum_stok' => 5],
+                ['kode' => 'BHN-005', 'nama' => 'Coklat Batang Dark Couverture', 'kategori' => 'Coklat & Topping', 'stok' => 18, 'satuan' => 'kg', 'minimum_stok' => 8],
+                ['kode' => 'BHN-006', 'nama' => 'Susu UHT Full Cream', 'kategori' => 'Dairy & Telur', 'stok' => 24, 'satuan' => 'liter', 'minimum_stok' => 12],
+                ['kode' => 'BHN-007', 'nama' => 'Telur Ayam Segar', 'kategori' => 'Dairy & Telur', 'stok' => 8, 'satuan' => 'kg', 'minimum_stok' => 10],
+                ['kode' => 'BHN-008', 'nama' => 'Keju Cheddar Blok Kraft', 'kategori' => 'Dairy & Telur', 'stok' => 6, 'satuan' => 'block', 'minimum_stok' => 5],
+                ['kode' => 'BHN-009', 'nama' => 'Vanili Bubuk Ekstrak', 'kategori' => 'Perisa & Pewarna', 'stok' => 10, 'satuan' => 'pack', 'minimum_stok' => 4],
+                ['kode' => 'BHN-010', 'nama' => 'Garam Halus Dapur', 'kategori' => 'Pemanis', 'stok' => 14, 'satuan' => 'kg', 'minimum_stok' => 5],
+                ['kode' => 'BHN-011', 'nama' => 'Margarin Serbaguna Blue Band', 'kategori' => 'Lemak & Butter', 'stok' => 20, 'satuan' => 'kg', 'minimum_stok' => 10],
+                ['kode' => 'BHN-012', 'nama' => 'Baking Powder Double Acting', 'kategori' => 'Pengembang', 'stok' => 2, 'satuan' => 'can', 'minimum_stok' => 4],
+                ['kode' => 'BHN-013', 'nama' => 'Almond Slice Panggang', 'kategori' => 'Coklat & Topping', 'stok' => 7, 'satuan' => 'kg', 'minimum_stok' => 5],
+            ];
+
+            foreach ($ingredients as $ing) {
+                Ingredient::create($ing);
+            }
         }
     }
 }
