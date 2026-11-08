@@ -33,6 +33,10 @@ class SendTelegramNotificationJob implements ShouldQueue
     {
         try {
             if ($this->type === 'order') {
+                if (!config('services.telegram.notify_orders', false)) {
+                    Log::debug('Telegram order notification skipped: channel is reserved for owner (orders excluded).');
+                    return;
+                }
                 $order = Order::with('items.product')->find($this->entityId);
                 if ($order) {
                     $notifier->notifyNewOrder($order);

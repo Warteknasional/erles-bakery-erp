@@ -212,4 +212,19 @@ class FinanceController extends Controller
             'breakdown_kategori' => $byCategory,
         ], 'Ringkasan keuangan berhasil diambil.');
     }
+
+    /**
+     * Send financial recap to Telegram.
+     */
+    public function sendTelegramRecap(Request $request, \App\Services\TelegramNotifier $notifier): JsonResponse
+    {
+        $date = $request->input('tanggal') ?? $request->input('date');
+        $success = $notifier->notifyDailyFinanceSummary($date);
+
+        if ($success) {
+            return $this->success(null, 'Rekap keuangan berhasil dikirim ke Telegram.');
+        }
+
+        return $this->error('Gagal mengirim rekap keuangan ke Telegram. Periksa konfigurasi bot.', 500);
+    }
 }

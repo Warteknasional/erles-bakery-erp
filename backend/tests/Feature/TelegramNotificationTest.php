@@ -25,6 +25,7 @@ class TelegramNotificationTest extends TestCase
     {
         Config::set('services.telegram.bot_token', 'mock_bot_token_123');
         Config::set('services.telegram.chat_id', '-100123456789');
+        Config::set('services.telegram.notify_orders', true);
 
         Http::fake([
             'https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => []], 200),
@@ -65,6 +66,31 @@ class TelegramNotificationTest extends TestCase
 
             return $isCorrectEndpoint && $hasChatId && $isHtml && $hasHeader && $hasCustomer && $hasProduct && $hasTotal && $hasMetode;
         });
+    }
+
+    public function test_order_notification_is_skipped_for_owner_telegram_when_notify_orders_is_false(): void
+    {
+        Config::set('services.telegram.bot_token', 'mock_bot_token_123');
+        Config::set('services.telegram.chat_id', '-100123456789');
+        Config::set('services.telegram.notify_orders', false);
+
+        Http::fake();
+
+        $product = Product::where('nama', 'Roti Tawar Gandum')->first();
+
+        $response = $this->postJson('/api/orders', [
+            'customer_name' => 'Budi Santoso',
+            'customer_phone' => '081298765432',
+            'alamat' => 'Jl. Merdeka No. 10, Jakarta Pusat',
+            'tanggal_ambil' => now()->addDays(1)->toDateString(),
+            'items' => [
+                ['product_id' => $product->id, 'qty' => 1],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        Http::assertNothingSent();
     }
 
     public function test_order_creation_succeeds_even_when_telegram_fails_or_times_out(): void
@@ -184,6 +210,82 @@ class TelegramNotificationTest extends TestCase
             'order_id' => $order->id,
             'nominal' => 15000,
         ]);
+    }
+
+    public function test_telegram_finance_recap_can_be_sent(): void
+    {
+        Config::set('services.telegram.bot_token', 'mock_bot_token_123');
+        Config::set('services.telegram.chat_id', '-100123456789');
+
+        Http::fake([
+            'https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => []], 200),
+        ]);
+
+        $admin = User::where('role', 'admin')->first();
+
+        $response = $this->actingAs($admin, 'sanctum')->postJson('/api/finance/telegram-recap');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Rekap keuangan berhasil dikirim ke Telegram.',
+            ]);
+
+        Http::assertSent(function ($request) {
+            $isCorrectEndpoint = str_contains($request->url(), 'api.telegram.org/botmock_bot_token_123/sendMessage');
+            $hasChatId = $request['chat_id'] === '-100123456789';
+            $text = $request['text'];
+
+            $hasHeader = str_contains($text, 'REKAP KEUANGAN HARIAN');
+            $hasPemasukan = str_contains($text, 'Pemasukan:');
+            $hasPengeluaran = str_contains($text, 'Pengeluaran:');
+
+            return $isCorrectEndpoint && $hasChatId && $hasHeader && $hasPemasukan && $hasPengeluaran;
+        });
+    }
+
+    public function test_telegram_inbound_bot_commands(): void
+    {
+        Config::set('services.telegram.bot_token', 'mock_bot_token_123');
+        Config::set('services.telegram.chat_id', '6731061545');
+
+        Http::fake([
+            'https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => []], 200),
+        ]);
+
+        $updateHelp = [
+            'update_id' => 1001,
+            'message' => [
+                'message_id' => 10,
+                'chat' => ['id' => 6731061545],
+                'from' => ['first_name' => 'Daffa'],
+                'text' => '/help',
+            ],
+        ];
+
+        $response = $this->postJson('/api/webhooks/telegram', $updateHelp);
+        $response->assertStatus(200)->assertJson(['ok' => true]);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request['text'], 'Erles Bakery Assistant');
+        });
+
+        // Test /rekap command
+        $updateRekap = [
+            'update_id' => 1002,
+            'message' => [
+                'message_id' => 11,
+                'chat' => ['id' => 6731061545],
+                'from' => ['first_name' => 'Daffa'],
+                'text' => '/rekap',
+            ],
+        ];
+
+        $this->postJson('/api/webhooks/telegram', $updateRekap);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request['text'], 'REKAP KEUANGAN ERLES BAKERY');
+        });
     }
 }
 

@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\FinanceTransaction;
 use App\Models\Order;
 use App\Models\Payment;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -123,6 +125,49 @@ class TelegramNotifier
             . "<b>Status Bayar Pesanan:</b> {$statusBayar}\n"
             . "<b>Metode:</b> {$metode} ({$tipe})\n"
             . "<b>Tanggal:</b> {$tanggal}";
+
+        return $this->sendMessage($message);
+    }
+
+    /**
+     * Send daily financial summary to owner/admin.
+     */
+    public function notifyDailyFinanceSummary(?string $date = null): bool
+    {
+        $targetDate = $date ? Carbon::parse($date) : Carbon::today();
+        $dateStr = $targetDate->format('Y-m-d');
+        $displayDate = $targetDate->format('d/m/Y');
+
+        $transactions = FinanceTransaction::whereDate('tanggal', $dateStr)->get();
+
+        $pemasukan = (float) $transactions->where('tipe', 'pemasukan')->sum('nominal');
+        $pengeluaran = (float) $transactions->where('tipe', 'pengeluaran')->sum('nominal');
+        $labaBersih = $pemasukan - $pengeluaran;
+
+        $ordersToday = Order::whereDate('created_at', $dateStr)->get();
+        $totalOrders = $ordersToday->count();
+        $paidOrders = $ordersToday->where('payment_status', 'paid')->count();
+        $partialOrders = $ordersToday->where('payment_status', 'partial')->count();
+        $unpaidOrders = $ordersToday->where('payment_status', 'unpaid')->count();
+
+        $pemasukanFmt = 'Rp ' . number_format($pemasukan, 0, ',', '.');
+        $pengeluaranFmt = 'Rp ' . number_format($pengeluaran, 0, ',', '.');
+        $labaFmt = 'Rp ' . number_format($labaBersih, 0, ',', '.');
+        $labaEmoji = $labaBersih >= 0 ? '🟢' : '🔴';
+
+        $message = "📊 <b>REKAP KEUANGAN HARIAN ERLES BAKERY</b>\n"
+            . "📅 <b>Tanggal:</b> {$displayDate}\n"
+            . "━━━━━━━━━━━━━━━━━━━━\n"
+            . "💰 <b>Pemasukan:</b> {$pemasukanFmt}\n"
+            . "💸 <b>Pengeluaran:</b> {$pengeluaranFmt}\n"
+            . "{$labaEmoji} <b>Laba/Rugi Bersih:</b> <b>{$labaFmt}</b>\n"
+            . "━━━━━━━━━━━━━━━━━━━━\n"
+            . "📦 <b>Aktivitas Pesanan:</b>\n"
+            . "• Total Pesanan: <b>{$totalOrders}</b>\n"
+            . "  - Lunas: {$paidOrders}\n"
+            . "  - DP / Sebagian: {$partialOrders}\n"
+            . "  - Belum Bayar: {$unpaidOrders}\n\n"
+            . "<i>Laporan otomatis sistem Erles Bakery ERP</i>";
 
         return $this->sendMessage($message);
     }

@@ -42,6 +42,9 @@ Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:
 Route::post('/webhooks/waha', [\App\Http\Controllers\WahaWebhookController::class, 'handle'])
     ->middleware('throttle:waha-webhook');
 
+// Telegram Inbound Webhook
+Route::post('/webhooks/telegram', [\App\Http\Controllers\TelegramWebhookController::class, 'handle']);
+
 // ─────────────────────────────────────────────────────────────
 // Protected Admin & Staff Routes (Sanctum)
 // ─────────────────────────────────────────────────────────────
@@ -87,6 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Finance Management (Admin & Staff)
     Route::get('/finance/summary', [FinanceController::class, 'summary'])->middleware('role:admin,staff');
+    Route::post('/finance/telegram-recap', [FinanceController::class, 'sendTelegramRecap'])->middleware('role:admin,staff');
     Route::get('/finance', [FinanceController::class, 'index'])->middleware('role:admin,staff');
     Route::get('/finance/{finance}', [FinanceController::class, 'show'])->middleware('role:admin,staff');
     Route::post('/finance', [FinanceController::class, 'store'])->middleware('role:admin,staff');

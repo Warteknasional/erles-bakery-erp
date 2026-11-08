@@ -33,11 +33,21 @@ class WahaWebhookController extends Controller
 
         $incomingSecret = $request->header('X-Webhook-Secret')
             ?? $request->header('X-Api-Key')
-            ?? $request->header('X-Hmac-Sha256')
             ?? $request->bearerToken()
             ?? $request->query('secret');
 
-        if (!hash_equals((string) $configuredSecret, (string) $incomingSecret)) {
+        $isValid = false;
+        if ($incomingSecret && hash_equals((string) $configuredSecret, (string) $incomingSecret)) {
+            $isValid = true;
+        } elseif ($request->header('X-Hmac-Sha256')) {
+            $signature = (string) $request->header('X-Hmac-Sha256');
+            $computed = hash_hmac('sha256', $request->getContent(), (string) $configuredSecret);
+            if (hash_equals($computed, $signature) || hash_equals("sha256={$computed}", $signature)) {
+                $isValid = true;
+            }
+        }
+
+        if (!$isValid) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
