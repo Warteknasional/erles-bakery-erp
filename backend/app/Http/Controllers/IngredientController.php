@@ -45,13 +45,13 @@ class IngredientController extends Controller
         $query->orderBy('nama', 'asc');
 
         if ($request->boolean('all')) {
-            return $this->successResponse($query->get());
+            return $this->success($query->get(), 'Daftar bahan baku berhasil diambil.');
         }
 
         $perPage = max(1, min((int) $request->query('per_page', 10), 100));
         $ingredients = $query->paginate($perPage);
 
-        return $this->paginatedResponse($ingredients);
+        return $this->paginated($ingredients, 'Daftar bahan baku berhasil diambil.');
     }
 
     /**
@@ -81,7 +81,7 @@ class IngredientController extends Controller
 
         $ingredient = Ingredient::create($validated);
 
-        return $this->createdResponse($ingredient, 'Bahan baku berhasil ditambahkan');
+        return $this->success($ingredient, 'Bahan baku berhasil ditambahkan', 201);
     }
 
     /**
@@ -89,7 +89,7 @@ class IngredientController extends Controller
      */
     public function show(Ingredient $ingredient): JsonResponse
     {
-        return $this->successResponse($ingredient);
+        return $this->success($ingredient, 'Detail bahan baku berhasil diambil');
     }
 
     /**
@@ -108,7 +108,7 @@ class IngredientController extends Controller
 
         $ingredient->update($validated);
 
-        return $this->successResponse($ingredient, 'Bahan baku berhasil diperbarui');
+        return $this->success($ingredient, 'Bahan baku berhasil diperbarui');
     }
 
     /**
@@ -118,6 +118,7 @@ class IngredientController extends Controller
     {
         $ingredient->delete();
 
-        return $this->successResponse(null, 'Bahan baku berhasil dihapus');
+        return $this->success(null, 'Bahan baku berhasil dihapus');
     }
 }
+

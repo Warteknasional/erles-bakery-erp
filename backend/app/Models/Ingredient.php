@@ -60,3 +60,4 @@ class Ingredient extends Model
      */
     protected $appends = ['status'];
 }
+
