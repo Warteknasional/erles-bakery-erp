@@ -12,7 +12,7 @@ Dokumen resmi pelaksanaan pengujian fungsional (*Functional Testing*), *User Acc
 | :--- | :--- | :--- |
 | **Storefront Publik** | [https://erlesbakery.netlify.app](https://erlesbakery.netlify.app) | `http://localhost:5173` |
 | **Admin & ERP Portal** | [https://erlesbakery-admin.netlify.app](https://erlesbakery-admin.netlify.app) | `http://localhost:5174` |
-| **API Backend (Laravel)** | Cloud API / Tunnel | `http://localhost:8000/api` |
+| **API Backend (Laravel)** | [https://backend-production-3e71.up.railway.app/api](https://backend-production-3e71.up.railway.app/api) | `http://localhost:8000/api` |
 
 ### 1.2 Matriks Akun & Hak Akses Pengujian
 | Role | Email Akun | Kata Sandi | Hak Akses Utama |
