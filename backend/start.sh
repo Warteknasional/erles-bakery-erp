@@ -21,3 +21,4 @@ php artisan route:clear || true
 PORT_TO_USE="${PORT:-8000}"
 echo "Serving application on port $PORT_TO_USE..."
 exec php artisan serve --host=0.0.0.0 --port="$PORT_TO_USE"
+
