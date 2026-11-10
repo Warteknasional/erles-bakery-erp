@@ -35,8 +35,9 @@ Route::middleware('throttle:public-api')->group(function () {
     Route::get('/orders/track/{idOrCode}', [OrderController::class, 'show']);
 });
 
-// Public Order Placement
+// Public Order Placement & Payment Proof Upload
 Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:public-order');
+Route::post('/orders/{idOrCode}/payment-proof', [OrderController::class, 'uploadPaymentProof']);
 
 // WAHA WhatsApp Webhook
 Route::post('/webhooks/waha', [\App\Http\Controllers\WahaWebhookController::class, 'handle'])

@@ -29,6 +29,7 @@ class OrderResource extends JsonResource
             'payment_status' => $this->payment_status ?? 'unpaid',
             'paid_amount' => (float) ($this->paid_amount ?? 0),
             'sisa_pembayaran' => max(0, (float) $this->total_price - (float) ($this->paid_amount ?? 0)),
+            'bukti_pembayaran' => $this->bukti_pembayaran,
             'payments' => PaymentResource::collection($this->whenLoaded('payments')),
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'items_count' => $this->whenCounted('items'),

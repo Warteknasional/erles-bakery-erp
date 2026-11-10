@@ -257,4 +257,48 @@ class OrderController extends Controller
 
         return $this->success(null, 'Pesanan berhasil dihapus.');
     }
+
+    /**
+     * Upload proof of payment for an order (Public or Admin).
+     */
+    public function uploadPaymentProof(Request $request, string $idOrCode): JsonResponse
+    {
+        $order = is_numeric($idOrCode)
+            ? Order::find($idOrCode)
+            : Order::where('kode_pesanan', $idOrCode)->first();
+
+        if (!$order) {
+            return $this->error('Pesanan tidak ditemukan.', 404);
+        }
+
+        if (in_array(Order::normalizeStatus($order->status), ['cancelled', 'dibatalkan'])) {
+            return $this->error('Tidak dapat mengunggah bukti pembayaran untuk pesanan yang telah dibatalkan.', 422);
+        }
+
+        $request->validate([
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // max 5MB
+            'proof_url' => 'nullable|string',
+        ]);
+
+        $proofUrl = null;
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = 'proof_' . $order->kode_pesanan . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('payment_proofs', $filename, 'public');
+            $proofUrl = url('/storage/' . $path);
+        } elseif ($request->filled('proof_url')) {
+            $proofUrl = $request->input('proof_url');
+        } else {
+            return $this->error('File gambar bukti transfer wajib disertakan.', 422);
+        }
+
+        $order->bukti_pembayaran = $proofUrl;
+        $order->saveQuietly();
+
+        return $this->success(
+            new OrderResource($order->fresh(['items.product', 'customer'])),
+            'Bukti pembayaran berhasil diunggah. Admin toko akan segera memverifikasi pesanan Anda.'
+        );
+    }
 }

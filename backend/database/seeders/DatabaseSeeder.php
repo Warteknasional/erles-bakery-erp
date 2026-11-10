@@ -62,24 +62,24 @@ class DatabaseSeeder extends Seeder
         // ═══════════════════════════════════════
         $productDefs = collect([
             // Roti
-            ['nama' => 'Roti Tawar Gandum',      'harga' => 25000, 'kategori' => 'Roti',    'stok' => 50, 'deskripsi' => 'Roti tawar gandum utuh, lembut dan sehat.'],
-            ['nama' => 'Roti Sobek Cokelat',      'harga' => 28000, 'kategori' => 'Roti',    'stok' => 40, 'deskripsi' => 'Roti sobek isi cokelat leleh, favorit anak-anak.'],
-            ['nama' => 'Roti Sisir Mentega',       'harga' => 22000, 'kategori' => 'Roti',    'stok' => 35, 'deskripsi' => 'Roti sisir klasik dengan olesan mentega premium.'],
-            ['nama' => 'Croissant Butter',         'harga' => 18000, 'kategori' => 'Roti',    'stok' => 30, 'deskripsi' => 'Croissant renyah berlapis butter Prancis.'],
+            ['nama' => 'Roti Tawar Gandum',      'harga' => 25000, 'kategori' => 'Roti',    'stok' => 50, 'deskripsi' => 'Roti tawar gandum utuh, lembut dan sehat.', 'gambar' => 'https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Roti Sobek Cokelat',      'harga' => 28000, 'kategori' => 'Roti',    'stok' => 40, 'deskripsi' => 'Roti sobek isi cokelat leleh, favorit anak-anak.', 'gambar' => 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Roti Sisir Mentega',       'harga' => 22000, 'kategori' => 'Roti',    'stok' => 35, 'deskripsi' => 'Roti sisir klasik dengan olesan mentega premium.', 'gambar' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Croissant Butter',         'harga' => 18000, 'kategori' => 'Roti',    'stok' => 30, 'deskripsi' => 'Croissant renyah berlapis butter Prancis.', 'gambar' => 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=700&q=80'],
             // Kue
-            ['nama' => 'Brownies Panggang',        'harga' => 45000, 'kategori' => 'Kue',     'stok' => 25, 'deskripsi' => 'Brownies premium dengan dark chocolate.'],
-            ['nama' => 'Bolu Pandan Pake Nasi',    'harga' => 55000, 'kategori' => 'Kue',     'stok' => 20, 'deskripsi' => 'Bolu pandan lembut dengan aroma pandan alami.'],
-            ['nama' => 'Lapis Legit Original',     'harga' => 120000,'kategori' => 'Kue',     'stok' => 10, 'deskripsi' => 'Lapis legit tradisional, 18 lapis sempurna.'],
-            ['nama' => 'Cheesecake Blueberry',     'harga' => 85000, 'kategori' => 'Kue',     'stok' => 15, 'deskripsi' => 'Cheesecake lembut dengan topping blueberry segar.'],
+            ['nama' => 'Brownies Panggang',        'harga' => 45000, 'kategori' => 'Kue',     'stok' => 25, 'deskripsi' => 'Brownies premium dengan dark chocolate.', 'gambar' => 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Bolu Pandan Pake Nasi',    'harga' => 55000, 'kategori' => 'Kue',     'stok' => 20, 'deskripsi' => 'Bolu pandan lembut dengan aroma pandan alami.', 'gambar' => 'https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Lapis Legit Original',     'harga' => 120000,'kategori' => 'Kue',     'stok' => 10, 'deskripsi' => 'Lapis legit tradisional, 18 lapis sempurna.', 'gambar' => 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Cheesecake Blueberry',     'harga' => 85000, 'kategori' => 'Kue',     'stok' => 15, 'deskripsi' => 'Cheesecake lembut dengan topping blueberry segar.', 'gambar' => 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=700&q=80'],
             // Kue Kering
-            ['nama' => 'Nastar Keju',              'harga' => 75000, 'kategori' => 'Kue Kering', 'stok' => 30, 'deskripsi' => 'Nastar isi selai nanas dengan taburan keju.'],
-            ['nama' => 'Kastengel Premium',        'harga' => 80000, 'kategori' => 'Kue Kering', 'stok' => 25, 'deskripsi' => 'Kastengel renyah dengan keju Edam asli.'],
-            ['nama' => 'Putri Salju Almond',       'harga' => 70000, 'kategori' => 'Kue Kering', 'stok' => 20, 'deskripsi' => 'Putri salju lumer di mulut dengan almond pilihan.'],
+            ['nama' => 'Nastar Keju',              'harga' => 75000, 'kategori' => 'Kue Kering', 'stok' => 30, 'deskripsi' => 'Nastar isi selai nanas dengan taburan keju.', 'gambar' => 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Kastengel Premium',        'harga' => 80000, 'kategori' => 'Kue Kering', 'stok' => 25, 'deskripsi' => 'Kastengel renyah dengan keju Edam asli.', 'gambar' => 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Putri Salju Almond',       'harga' => 70000, 'kategori' => 'Kue Kering', 'stok' => 20, 'deskripsi' => 'Putri salju lumer di mulut dengan almond pilihan.', 'gambar' => 'https://images.unsplash.com/photo-1548365328-8c6db3220e4c?auto=format&fit=crop&w=700&q=80'],
             // Hampers
-            ['nama' => 'Hampers Lebaran Classic',  'harga' => 250000,'kategori' => 'Hampers', 'stok' => 15, 'deskripsi' => 'Paket 3 toples kue kering (Nastar, Kastengel, Putri Salju) dalam box eksklusif.'],
-            ['nama' => 'Hampers Premium Gold',     'harga' => 450000,'kategori' => 'Hampers', 'stok' => 10, 'deskripsi' => 'Paket premium: Lapis Legit, 2 toples kue kering, Brownies, dalam box gold.'],
-            ['nama' => 'Hampers Natal Joy',        'harga' => 350000,'kategori' => 'Hampers', 'stok' => 12, 'deskripsi' => 'Paket Natal: Cheesecake, Brownies, 2 toples kue kering, dengan dekorasi Natal.'],
-            ['nama' => 'Hampers Mini Gift',        'harga' => 150000,'kategori' => 'Hampers', 'stok' => 20, 'deskripsi' => 'Paket mini berisi 1 toples kue kering dan 1 Brownies, cocok untuk oleh-oleh.'],
+            ['nama' => 'Hampers Lebaran Classic',  'harga' => 250000,'kategori' => 'Hampers', 'stok' => 15, 'deskripsi' => 'Paket 3 toples kue kering (Nastar, Kastengel, Putri Salju) dalam box eksklusif.', 'gambar' => 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Hampers Premium Gold',     'harga' => 450000,'kategori' => 'Hampers', 'stok' => 10, 'deskripsi' => 'Paket premium: Lapis Legit, 2 toples kue kering, Brownies, dalam box gold.', 'gambar' => 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Hampers Natal Joy',        'harga' => 350000,'kategori' => 'Hampers', 'stok' => 12, 'deskripsi' => 'Paket Natal: Cheesecake, Brownies, 2 toples kue kering, dengan dekorasi Natal.', 'gambar' => 'https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=700&q=80'],
+            ['nama' => 'Hampers Mini Gift',        'harga' => 150000,'kategori' => 'Hampers', 'stok' => 20, 'deskripsi' => 'Paket mini berisi 1 toples kue kering dan 1 Brownies, cocok untuk oleh-oleh.', 'gambar' => 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=700&q=80'],
         ]);
 
         $products = $productDefs->map(function ($data) use ($categories) {
@@ -87,7 +87,11 @@ class DatabaseSeeder extends Seeder
             $data['slug'] = $slug;
             $data['is_active'] = true;
             $data['category_id'] = $categories[$data['kategori']]?->id;
-            return Product::firstOrCreate(['slug' => $slug], $data);
+            $product = Product::firstOrCreate(['slug' => $slug], $data);
+            if (!$product->gambar && !empty($data['gambar'])) {
+                $product->update(['gambar' => $data['gambar']]);
+            }
+            return $product;
         });
 
         // ═══════════════════════════════════════

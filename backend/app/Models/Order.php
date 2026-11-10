@@ -27,6 +27,7 @@ class Order extends Model
         'source',
         'payment_status',
         'paid_amount',
+        'bukti_pembayaran',
     ];
 
     /**
