@@ -1,8 +1,11 @@
-# Netlify configuration for erles-bakery-erp (Deploying public app)
+# Netlify configuration for erles-bakery-erp (Deploying public app from Monorepo)
 [build]
   base = "public"
   command = "npm run build"
   publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/*"
