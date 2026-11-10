@@ -23,7 +23,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Order::with(['items.product'])->latest();
+        $query = Order::with(['items.product', 'customer', 'payments'])->latest();
 
         // Filter by status
         if ($request->filled('status')) {
@@ -134,8 +134,8 @@ class OrderController extends Controller
     public function show(string $idOrCode): JsonResponse
     {
         $order = is_numeric($idOrCode)
-            ? Order::with('items.product')->find($idOrCode)
-            : Order::with('items.product')->where('kode_pesanan', $idOrCode)->first();
+            ? Order::with(['items.product', 'customer', 'payments'])->find($idOrCode)
+            : Order::with(['items.product', 'customer', 'payments'])->where('kode_pesanan', $idOrCode)->first();
 
         if (!$order) {
             return $this->error('Pesanan tidak ditemukan.', 404);

@@ -25,61 +25,81 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ═══════════════════════════════════════
-        // 1. Users (Admin and Staff)
+        // 1. User: Bu Erni Lestari (Owner & Baker Tunggal)
         // ═══════════════════════════════════════
         $admin = User::firstOrCreate(
             ['email' => 'admin@erlesbakery.com'],
             [
-                'name' => 'Admin Erles',
-                'phone' => '081234567890',
+                'name' => 'Bu Erni Lestari',
+                'phone' => '082145346270',
                 'role' => 'admin',
                 'password' => bcrypt('password'),
             ]
         );
 
-        $staff = User::firstOrCreate(
-            ['email' => 'staff@erlesbakery.com'],
-            [
-                'name' => 'Staff Erles',
-                'phone' => '081234567891',
-                'role' => 'karyawan',
-                'password' => bcrypt('password'),
-            ]
-        );
+        // Pastikan nama user terupdate jika sebelumnya seeded nama generik
+        $admin->update([
+            'name' => 'Bu Erni Lestari',
+            'phone' => '082145346270',
+            'role' => 'admin',
+        ]);
 
         // ═══════════════════════════════════════
         // 2. Categories
         // ═══════════════════════════════════════
         $categories = [
-            'Roti' => Category::firstOrCreate(['slug' => 'roti'], ['name' => 'Roti', 'description' => 'Aneka roti tawar dan manis']),
-            'Kue' => Category::firstOrCreate(['slug' => 'kue'], ['name' => 'Kue', 'description' => 'Kue basah, bolu, dan brownies']),
-            'Kue Kering' => Category::firstOrCreate(['slug' => 'kue-kering'], ['name' => 'Kue Kering', 'description' => 'Kue toples khas hari raya']),
-            'Hampers' => Category::firstOrCreate(['slug' => 'hampers'], ['name' => 'Hampers', 'description' => 'Paket bingkisan spesial']),
+            'Roti Sourdough & Artisan' => Category::firstOrCreate(['slug' => 'roti-artisan'], ['name' => 'Roti Sourdough & Artisan', 'description' => 'Roti fermentasi lambat 24 jam dengan ragi alami']),
+            'Donat Kentang' => Category::firstOrCreate(['slug' => 'donat-kentang'], ['name' => 'Donat Kentang', 'description' => 'Donat empuk kenyal dari kentang kukus lokal Malang']),
+            'Pastry & Viennoiserie' => Category::firstOrCreate(['slug' => 'pastry'], ['name' => 'Pastry & Viennoiserie', 'description' => 'Pastry renyah berlapis mentega murni']),
+            'Hampers & Gift' => Category::firstOrCreate(['slug' => 'hampers'], ['name' => 'Hampers & Gift', 'description' => 'Kotak hantaran kue kering wisman spesial']),
         ];
 
         // ═══════════════════════════════════════
-        // 3. Products (15 items)
+        // 3. Products (6 Produk Asli Erles Bakery)
         // ═══════════════════════════════════════
         $productDefs = collect([
-            // Roti
-            ['nama' => 'Roti Tawar Gandum',      'harga' => 25000, 'kategori' => 'Roti',    'stok' => 50, 'deskripsi' => 'Roti tawar gandum utuh, lembut dan sehat.'],
-            ['nama' => 'Roti Sobek Cokelat',      'harga' => 28000, 'kategori' => 'Roti',    'stok' => 40, 'deskripsi' => 'Roti sobek isi cokelat leleh, favorit anak-anak.'],
-            ['nama' => 'Roti Sisir Mentega',       'harga' => 22000, 'kategori' => 'Roti',    'stok' => 35, 'deskripsi' => 'Roti sisir klasik dengan olesan mentega premium.'],
-            ['nama' => 'Croissant Butter',         'harga' => 18000, 'kategori' => 'Roti',    'stok' => 30, 'deskripsi' => 'Croissant renyah berlapis butter Prancis.'],
-            // Kue
-            ['nama' => 'Brownies Panggang',        'harga' => 45000, 'kategori' => 'Kue',     'stok' => 25, 'deskripsi' => 'Brownies premium dengan dark chocolate.'],
-            ['nama' => 'Bolu Pandan Pake Nasi',    'harga' => 55000, 'kategori' => 'Kue',     'stok' => 20, 'deskripsi' => 'Bolu pandan lembut dengan aroma pandan alami.'],
-            ['nama' => 'Lapis Legit Original',     'harga' => 120000,'kategori' => 'Kue',     'stok' => 10, 'deskripsi' => 'Lapis legit tradisional, 18 lapis sempurna.'],
-            ['nama' => 'Cheesecake Blueberry',     'harga' => 85000, 'kategori' => 'Kue',     'stok' => 15, 'deskripsi' => 'Cheesecake lembut dengan topping blueberry segar.'],
-            // Kue Kering
-            ['nama' => 'Nastar Keju',              'harga' => 75000, 'kategori' => 'Kue Kering', 'stok' => 30, 'deskripsi' => 'Nastar isi selai nanas dengan taburan keju.'],
-            ['nama' => 'Kastengel Premium',        'harga' => 80000, 'kategori' => 'Kue Kering', 'stok' => 25, 'deskripsi' => 'Kastengel renyah dengan keju Edam asli.'],
-            ['nama' => 'Putri Salju Almond',       'harga' => 70000, 'kategori' => 'Kue Kering', 'stok' => 20, 'deskripsi' => 'Putri salju lumer di mulut dengan almond pilihan.'],
-            // Hampers
-            ['nama' => 'Hampers Lebaran Classic',  'harga' => 250000,'kategori' => 'Hampers', 'stok' => 15, 'deskripsi' => 'Paket 3 toples kue kering (Nastar, Kastengel, Putri Salju) dalam box eksklusif.'],
-            ['nama' => 'Hampers Premium Gold',     'harga' => 450000,'kategori' => 'Hampers', 'stok' => 10, 'deskripsi' => 'Paket premium: Lapis Legit, 2 toples kue kering, Brownies, dalam box gold.'],
-            ['nama' => 'Hampers Natal Joy',        'harga' => 350000,'kategori' => 'Hampers', 'stok' => 12, 'deskripsi' => 'Paket Natal: Cheesecake, Brownies, 2 toples kue kering, dengan dekorasi Natal.'],
-            ['nama' => 'Hampers Mini Gift',        'harga' => 150000,'kategori' => 'Hampers', 'stok' => 20, 'deskripsi' => 'Paket mini berisi 1 toples kue kering dan 1 Brownies, cocok untuk oleh-oleh.'],
+            [
+                'nama' => 'Sourdough Country Boule',
+                'harga' => 45000,
+                'kategori' => 'Roti Sourdough & Artisan',
+                'stok' => 30,
+                'deskripsi' => 'Kerak keemasan renyah berongga lembut hasil fermentasi alami 24 jam dengan ragi starter khas dapur Bu Erni.',
+            ],
+            [
+                'nama' => 'Olive & Rosemary Ciabatta',
+                'harga' => 32000,
+                'kategori' => 'Roti Sourdough & Artisan',
+                'stok' => 25,
+                'deskripsi' => 'Roti klasik Italia dengan kelembapan tinggi, irisan buah zaitun hitam, dan aroma rosemary segar.',
+            ],
+            [
+                'nama' => 'French Baguette Tradisi',
+                'harga' => 28000,
+                'kategori' => 'Roti Sourdough & Artisan',
+                'stok' => 20,
+                'deskripsi' => 'Baguette renyah autentik dengan remah airy dan kerak garing, dipanggang sempurna setiap subuh.',
+            ],
+            [
+                'nama' => 'Donat Kentang Gula Halus',
+                'harga' => 8000,
+                'kategori' => 'Donat Kentang',
+                'stok' => 50,
+                'deskripsi' => 'Donat kentang legendaris dari kentang kukus lokal Malang, tekstur lembut empuk bertabur gula dingin.',
+            ],
+            [
+                'nama' => 'Donat Coklat Almond Panggang',
+                'harga' => 12000,
+                'kategori' => 'Donat Kentang',
+                'stok' => 40,
+                'deskripsi' => 'Balutan dark chocolate leleh premium bertabur irisan kacang almond iris sangrai renyah gurih.',
+            ],
+            [
+                'nama' => 'Hampers Lebaran Deluxe',
+                'harga' => 350000,
+                'kategori' => 'Hampers & Gift',
+                'stok' => 15,
+                'deskripsi' => 'Kotak eksklusif velvet gold berisi 3 toples kue kering butter Wisman legendaris & kartu ucapan kustom.',
+            ],
         ]);
 
         $products = $productDefs->map(function ($data) use ($categories) {
@@ -87,70 +107,58 @@ class DatabaseSeeder extends Seeder
             $data['slug'] = $slug;
             $data['is_active'] = true;
             $data['category_id'] = $categories[$data['kategori']]?->id;
-            return Product::firstOrCreate(['slug' => $slug], $data);
+            return Product::updateOrCreate(['slug' => $slug], $data);
         });
 
         // ═══════════════════════════════════════
-        // 4. Orders with items (5 orders)
+        // 4. Orders with items (Alamat Asli Malang Raya)
         // ═══════════════════════════════════════
         $orderData = [
             [
                 'customer_name' => 'Budi Santoso',
-                'customer_phone' => '081298765432',
-                'alamat' => 'Jl. Merdeka No. 10, Jakarta Pusat',
-                'tanggal_ambil' => now()->addDays(3)->toDateString(),
+                'customer_phone' => '081234567890',
+                'alamat' => 'Jl. Soekarno Hatta No. 12, Lowokwaru, Kota Malang',
+                'tanggal_ambil' => now()->addDays(1)->toDateString(),
                 'status' => 'pending',
-                'catatan' => 'Tolong dikemas rapi, untuk acara kantor.',
+                'catatan' => 'Tolong dikemas rapi untuk sarapan keluarga',
                 'items' => [
-                    ['product_index' => 4, 'qty' => 2],  // Brownies x2
-                    ['product_index' => 0, 'qty' => 3],  // Roti Tawar x3
+                    ['product_index' => 0, 'qty' => 1], // Sourdough
+                    ['product_index' => 3, 'qty' => 5], // Donat Kentang x5
                 ],
             ],
             [
                 'customer_name' => 'Siti Aminah',
-                'customer_phone' => '085712345678',
-                'alamat' => 'Jl. Pahlawan No. 25, Bandung',
-                'tanggal_ambil' => now()->addDays(1)->toDateString(),
+                'customer_phone' => '081298765432',
+                'alamat' => 'Jl. Ijen No. 25, Klojen, Kota Malang',
+                'tanggal_ambil' => now()->toDateString(),
                 'status' => 'processing',
-                'catatan' => null,
+                'catatan' => 'Kirim via kurir instan Malang',
                 'items' => [
-                    ['product_index' => 11, 'qty' => 1], // Hampers Lebaran
-                    ['product_index' => 8, 'qty' => 2],  // Nastar x2
+                    ['product_index' => 1, 'qty' => 1], // Ciabatta
+                    ['product_index' => 4, 'qty' => 4], // Donat Coklat x4
                 ],
             ],
             [
-                'customer_name' => 'Andi Prasetyo',
-                'customer_phone' => '087654321098',
-                'alamat' => null, // Ambil di toko
-                'tanggal_ambil' => now()->subDays(2)->toDateString(),
+                'customer_name' => 'Ahmad Fauzi',
+                'customer_phone' => '085612345678',
+                'alamat' => 'Jl. Bendungan Sigura-gura No. 18, Sukun, Malang',
+                'tanggal_ambil' => now()->subDays(1)->toDateString(),
                 'status' => 'completed',
-                'catatan' => 'Ambil di toko jam 10 pagi.',
+                'catatan' => 'Ambil langsung di dapur jam 07.00 pagi',
                 'items' => [
-                    ['product_index' => 12, 'qty' => 1], // Hampers Premium Gold
+                    ['product_index' => 2, 'qty' => 2], // Baguette x2
+                    ['product_index' => 3, 'qty' => 6], // Donat Kentang x6
                 ],
             ],
             [
                 'customer_name' => 'Dewi Lestari',
-                'customer_phone' => '081345678901',
-                'alamat' => 'Jl. Sudirman Kav. 5, Jakarta Selatan',
-                'tanggal_ambil' => now()->addDays(7)->toDateString(),
+                'customer_phone' => '087812345678',
+                'alamat' => 'Jl. Kalpataru No. 45, Lowokwaru, Malang',
+                'tanggal_ambil' => now()->addDays(2)->toDateString(),
                 'status' => 'pending',
-                'catatan' => 'Untuk acara ulang tahun, tolong tambahin lilin.',
+                'catatan' => 'Sertakan kartu ucapan kustom',
                 'items' => [
-                    ['product_index' => 7, 'qty' => 1],  // Cheesecake
-                    ['product_index' => 5, 'qty' => 1],  // Bolu Pandan
-                    ['product_index' => 3, 'qty' => 5],  // Croissant x5
-                ],
-            ],
-            [
-                'customer_name' => 'Rizky Hidayat',
-                'customer_phone' => '089876543210',
-                'alamat' => 'Jl. Gatot Subroto No. 88, Semarang',
-                'tanggal_ambil' => now()->subDays(5)->toDateString(),
-                'status' => 'cancelled',
-                'catatan' => 'Batal karena perubahan jadwal acara.',
-                'items' => [
-                    ['product_index' => 13, 'qty' => 3], // Hampers Natal x3
+                    ['product_index' => 5, 'qty' => 1], // Hampers Deluxe
                 ],
             ],
         ];
@@ -185,9 +193,8 @@ class DatabaseSeeder extends Seeder
         }
 
         // ═══════════════════════════════════════
-        // 5. Finance Transactions & Payment
+        // 5. Finance Transactions (Operasional Riil Dapur Rumahan)
         // ═══════════════════════════════════════
-        // Pemasukan dari pesanan selesai
         $completedOrder = Order::whereIn('status', ['completed', 'selesai'])->first();
         if ($completedOrder) {
             $payment = Payment::firstOrCreate(
@@ -205,11 +212,7 @@ class DatabaseSeeder extends Seeder
             $completedOrder->recalculatePaymentStatus();
 
             $existingTx = FinanceTransaction::where('order_id', $completedOrder->id)->first();
-            if ($existingTx) {
-                if (!$existingTx->payment_id) {
-                    $existingTx->update(['payment_id' => $payment->id]);
-                }
-            } else {
+            if (!$existingTx) {
                 FinanceTransaction::create([
                     'tipe' => 'pemasukan',
                     'nominal' => $completedOrder->total_price,
@@ -223,14 +226,13 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Pengeluaran operasional (5 transaksi)
         if (FinanceTransaction::where('tipe', 'pengeluaran')->count() === 0) {
             $expenses = [
-                ['nominal' => 500000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian tepung terigu 25kg',              'tanggal' => now()->subDays(10)->toDateString()],
-                ['nominal' => 350000,  'kategori' => 'Bahan Baku',  'catatan' => 'Pembelian mentega & margarin',              'tanggal' => now()->subDays(8)->toDateString()],
-                ['nominal' => 150000,  'kategori' => 'Packaging',   'catatan' => 'Box hampers dan pita',                      'tanggal' => now()->subDays(7)->toDateString()],
-                ['nominal' => 200000,  'kategori' => 'Operasional', 'catatan' => 'Biaya listrik toko bulan ini',              'tanggal' => now()->subDays(5)->toDateString()],
-                ['nominal' => 1200000, 'kategori' => 'Gaji',        'catatan' => 'Gaji karyawan part-time (2 orang)',         'tanggal' => now()->subDays(1)->toDateString()],
+                ['nominal' => 380000, 'kategori' => 'Bahan Baku', 'catatan' => 'Pembelian tepung Cakra Kembar Emas 25kg', 'tanggal' => now()->subDays(6)->toDateString()],
+                ['nominal' => 280000, 'kategori' => 'Bahan Baku', 'catatan' => 'Kentang kukus segar pasar lokal Malang 20kg', 'tanggal' => now()->subDays(4)->toDateString()],
+                ['nominal' => 450000, 'kategori' => 'Bahan Baku', 'catatan' => 'Pembelian French Butter Unsalted 5kg', 'tanggal' => now()->subDays(3)->toDateString()],
+                ['nominal' => 120000, 'kategori' => 'Packaging', 'catatan' => 'Kotak kemasan food-grade dan kantong kraft', 'tanggal' => now()->subDays(2)->toDateString()],
+                ['nominal' => 180000, 'kategori' => 'Operasional', 'catatan' => 'Isi ulang gas elpiji oven panggangan subuh', 'tanggal' => now()->subDays(1)->toDateString()],
             ];
 
             foreach ($expenses as $expense) {
@@ -245,89 +247,23 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Pemasukan tambahan (non-order)
-        if (FinanceTransaction::where('kategori', 'Penjualan Langsung')->count() === 0) {
-            FinanceTransaction::create([
-                'tipe' => 'pemasukan',
-                'nominal' => 180000,
-                'kategori' => 'Penjualan Langsung',
-                'catatan' => 'Penjualan walk-in roti & kue harian',
-                'tanggal' => now()->subDays(3)->toDateString(),
-                'user_id' => $admin->id,
-            ]);
-        }
-
         // ═══════════════════════════════════════
-        // 6. Ingredients (Bahan Baku)
+        // 6. Ingredients (Bahan Baku Dapur Erles)
         // ═══════════════════════════════════════
         if (Ingredient::count() === 0) {
             $ingredients = [
-                ['kode' => 'BHN-001', 'nama' => 'Tepung Terigu Protein Tinggi', 'kategori' => 'Tepung', 'stok' => 15, 'satuan' => 'kg', 'minimum_stok' => 25],
-                ['kode' => 'BHN-002', 'nama' => 'Butter Unsalted (Mentega Tawar)', 'kategori' => 'Lemak & Butter', 'stok' => 4, 'satuan' => 'kg', 'minimum_stok' => 10],
-                ['kode' => 'BHN-003', 'nama' => 'Gula Pasir Kristal Putih', 'kategori' => 'Pemanis', 'stok' => 12, 'satuan' => 'kg', 'minimum_stok' => 15],
-                ['kode' => 'BHN-004', 'nama' => 'Ragi Instan Saf-Instant', 'kategori' => 'Pengembang', 'stok' => 3, 'satuan' => 'box', 'minimum_stok' => 5],
-                ['kode' => 'BHN-005', 'nama' => 'Coklat Batang Dark Couverture', 'kategori' => 'Coklat & Topping', 'stok' => 18, 'satuan' => 'kg', 'minimum_stok' => 8],
-                ['kode' => 'BHN-006', 'nama' => 'Susu UHT Full Cream', 'kategori' => 'Dairy & Telur', 'stok' => 24, 'satuan' => 'liter', 'minimum_stok' => 12],
-                ['kode' => 'BHN-007', 'nama' => 'Telur Ayam Segar', 'kategori' => 'Dairy & Telur', 'stok' => 8, 'satuan' => 'kg', 'minimum_stok' => 10],
-                ['kode' => 'BHN-008', 'nama' => 'Keju Cheddar Blok Kraft', 'kategori' => 'Dairy & Telur', 'stok' => 6, 'satuan' => 'block', 'minimum_stok' => 5],
-                ['kode' => 'BHN-009', 'nama' => 'Vanili Bubuk Ekstrak', 'kategori' => 'Perisa & Pewarna', 'stok' => 10, 'satuan' => 'pack', 'minimum_stok' => 4],
-                ['kode' => 'BHN-010', 'nama' => 'Garam Halus Dapur', 'kategori' => 'Pemanis', 'stok' => 14, 'satuan' => 'kg', 'minimum_stok' => 5],
-                ['kode' => 'BHN-011', 'nama' => 'Margarin Serbaguna Blue Band', 'kategori' => 'Lemak & Butter', 'stok' => 20, 'satuan' => 'kg', 'minimum_stok' => 10],
-                ['kode' => 'BHN-012', 'nama' => 'Baking Powder Double Acting', 'kategori' => 'Pengembang', 'stok' => 2, 'satuan' => 'can', 'minimum_stok' => 4],
-                ['kode' => 'BHN-013', 'nama' => 'Almond Slice Panggang', 'kategori' => 'Coklat & Topping', 'stok' => 7, 'satuan' => 'kg', 'minimum_stok' => 5],
+                ['kode' => 'BHN-001', 'nama' => 'Tepung Terigu Protein Tinggi (Cakra Kembar Emas)', 'kategori' => 'Tepung', 'stok' => 35, 'satuan' => 'kg', 'minimum_stok' => 20],
+                ['kode' => 'BHN-002', 'nama' => 'Kentang Segar Pilihan Malang', 'kategori' => 'Bahan Segar', 'stok' => 25, 'satuan' => 'kg', 'minimum_stok' => 10],
+                ['kode' => 'BHN-003', 'nama' => 'French Pure Butter Unsalted', 'kategori' => 'Lemak & Butter', 'stok' => 8, 'satuan' => 'kg', 'minimum_stok' => 5],
+                ['kode' => 'BHN-004', 'nama' => 'Kultur Ragi Alami Sourdough Starter', 'kategori' => 'Pengembang', 'stok' => 5, 'satuan' => 'liter', 'minimum_stok' => 2],
+                ['kode' => 'BHN-005', 'nama' => 'Dark Chocolate Couverture 70%', 'kategori' => 'Coklat & Topping', 'stok' => 12, 'satuan' => 'kg', 'minimum_stok' => 5],
+                ['kode' => 'BHN-006', 'nama' => 'Almond Slice Panggang Gurih', 'kategori' => 'Coklat & Topping', 'stok' => 6, 'satuan' => 'kg', 'minimum_stok' => 3],
+                ['kode' => 'BHN-007', 'nama' => 'Gula Donat Dingin Khusus', 'kategori' => 'Pemanis', 'stok' => 18, 'satuan' => 'kg', 'minimum_stok' => 8],
+                ['kode' => 'BHN-008', 'nama' => 'Zaitun Hitam (Black Olives) & Rosemary Segar', 'kategori' => 'Bahan Segar', 'stok' => 4, 'satuan' => 'kg', 'minimum_stok' => 2],
             ];
 
             foreach ($ingredients as $ing) {
                 Ingredient::create($ing);
-            }
-        }
-
-        // ═══════════════════════════════════════
-        // 7. Bill of Materials / Resep Produk (product_ingredient)
-        // ═══════════════════════════════════════
-        $ingByKode = Ingredient::all()->keyBy('kode');
-        if ($ingByKode->isNotEmpty()) {
-            $categoryRecipes = [
-                'Roti' => [
-                    'BHN-001' => 0.35, // Tepung Terigu
-                    'BHN-002' => 0.15, // Butter Unsalted
-                    'BHN-004' => 0.05, // Ragi Instan
-                    'BHN-006' => 0.20, // Susu UHT
-                ],
-                'Kue' => [
-                    'BHN-001' => 0.25, // Tepung Terigu
-                    'BHN-003' => 0.20, // Gula Pasir
-                    'BHN-005' => 0.25, // Coklat Batang
-                    'BHN-007' => 0.30, // Telur Ayam
-                ],
-                'Kue Kering' => [
-                    'BHN-001' => 0.40, // Tepung Terigu
-                    'BHN-002' => 0.25, // Butter Unsalted
-                    'BHN-008' => 0.20, // Keju Cheddar
-                    'BHN-013' => 0.15, // Almond Slice
-                ],
-                'Hampers' => [
-                    'BHN-001' => 0.80, // Tepung Terigu
-                    'BHN-002' => 0.50, // Butter Unsalted
-                    'BHN-003' => 0.40, // Gula Pasir
-                    'BHN-005' => 0.40, // Coklat Batang
-                    'BHN-007' => 0.50, // Telur Ayam
-                ],
-            ];
-
-            foreach (Product::with('ingredients')->get() as $prod) {
-                if ($prod->ingredients->isEmpty()) {
-                    $recipe = $categoryRecipes[$prod->kategori] ?? $categoryRecipes['Roti'];
-                    $syncData = [];
-                    foreach ($recipe as $kode => $qtyUsed) {
-                        if (isset($ingByKode[$kode])) {
-                            $syncData[$ingByKode[$kode]->id] = ['qty_used' => $qtyUsed];
-                        }
-                    }
-                    if (!empty($syncData)) {
-                        $prod->ingredients()->syncWithoutDetaching($syncData);
-                    }
-                }
             }
         }
     }
