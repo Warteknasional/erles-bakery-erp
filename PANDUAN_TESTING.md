@@ -158,3 +158,4 @@ Sistem dinyatakan **Lulus UAT dan Siap Produksi** apabila:
 1. Seluruh skenario inti (**Login**, **Katalog**, **Pesanan Masuk**, dan **Stok Bahan**) berstatus **PASS 100%**.
 2. Tidak ada error kritis (*white screen / blank page / crash loop*).
 3. Tata letak responsif dan tidak ada tombol yang terpotong pada layar ponsel pintar (*smartphone*).
+
