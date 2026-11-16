@@ -18,7 +18,9 @@ class OrderStoreRequest extends FormRequest
             'customer_phone' => ['required', 'string', 'max:20'],
             'alamat' => ['nullable', 'string'],
             'catatan' => ['nullable', 'string'],
-            'tanggal_ambil' => ['nullable', 'date'],
+            'tanggal_ambil' => ['nullable', 'date', 'after_or_equal:today'],
+            'payment_method' => ['nullable', 'string'],
+            'bukti_pembayaran' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
@@ -30,6 +32,7 @@ class OrderStoreRequest extends FormRequest
         return [
             'customer_name.required' => 'Nama pelanggan wajib diisi.',
             'customer_phone.required' => 'Nomor WhatsApp / telepon pelanggan wajib diisi.',
+            'tanggal_ambil.after_or_equal' => 'Tanggal pengambilan atau pengantaran tidak boleh sebelum hari ini.',
             'items.required' => 'Pesanan minimal harus memiliki 1 item produk.',
             'items.min' => 'Pesanan minimal harus memiliki 1 item produk.',
             'items.*.product_id.required' => 'Produk wajib dipilih.',

@@ -65,7 +65,7 @@ class OrderController extends Controller
     {
         $validated = $request->validated();
 
-        $order = DB::transaction(function () use ($validated) {
+        $order = DB::transaction(function () use ($validated, $request) {
             $productIds = collect($validated['items'])->pluck('product_id')->unique();
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
@@ -74,6 +74,10 @@ class OrderController extends Controller
                 $validated['customer_name'],
                 $validated['alamat'] ?? null
             );
+
+            // Periksa jika ada bukti pembayaran yang diunggah langsung (misal data URI atau URL)
+            $buktiPembayaran = $validated['bukti_pembayaran'] ?? null;
+            $paymentMethod = strtolower($validated['payment_method'] ?? 'qris');
 
             $order = Order::create([
                 'customer_id' => $customer->id,
@@ -85,6 +89,7 @@ class OrderController extends Controller
                 'tanggal_ambil' => $validated['tanggal_ambil'] ?? null,
                 'status' => 'pending',
                 'total_price' => 0,
+                'bukti_pembayaran' => $buktiPembayaran,
             ]);
 
             $totalPrice = 0;
@@ -109,7 +114,40 @@ class OrderController extends Controller
                 ]);
             }
 
-            $order->update(['total_price' => $totalPrice]);
+            $order->total_price = $totalPrice;
+
+            // Jika pelanggan sudah upload bukti pembayaran (QRIS / Transfer Bank), otomatis tandai lunas
+            if (!empty($buktiPembayaran) && in_array($paymentMethod, ['qris', 'transfer'])) {
+                $order->payment_status = 'paid';
+                $order->paid_amount = $totalPrice;
+
+                // Catat ke riwayat payments & kas masuk
+                $payment = \App\Models\Payment::create([
+                    'order_id' => $order->id,
+                    'nominal' => $totalPrice,
+                    'metode' => $paymentMethod,
+                    'tipe' => 'lunas',
+                    'tanggal' => now()->toDateString(),
+                    'catatan' => "Pembayaran otomatis via {$paymentMethod} dengan bukti transfer",
+                    'bukti_bayar' => $buktiPembayaran,
+                ]);
+
+                \App\Models\FinanceTransaction::create([
+                    'tipe' => 'pemasukan',
+                    'nominal' => $totalPrice,
+                    'kategori' => 'Penjualan',
+                    'catatan' => "Pembayaran lunas ({$paymentMethod}) pesanan {$order->kode_pesanan}",
+                    'tanggal' => now()->toDateString(),
+                    'order_id' => $order->id,
+                    'payment_id' => $payment->id,
+                ]);
+            } else {
+                $order->payment_status = 'unpaid';
+                $order->paid_amount = 0;
+            }
+
+            $order->saveQuietly();
+
             $customer->increment('total_orders');
             $customer->increment('total_spent', $totalPrice);
 
@@ -294,11 +332,38 @@ class OrderController extends Controller
         }
 
         $order->bukti_pembayaran = $proofUrl;
+
+        // Otomatis tandai pesanan sebagai lunas jika bukti pembayaran telah diunggah
+        if ($order->payment_status !== 'paid') {
+            $totalPrice = (float) $order->total_price;
+            $order->payment_status = 'paid';
+            $order->paid_amount = $totalPrice;
+
+            \App\Models\Payment::create([
+                'order_id' => $order->id,
+                'nominal' => $totalPrice,
+                'metode' => 'transfer',
+                'tipe' => 'lunas',
+                'tanggal' => now()->toDateString(),
+                'catatan' => 'Pembayaran otomatis lunas melalui upload bukti pembayaran',
+                'bukti_bayar' => $proofUrl,
+            ]);
+
+            \App\Models\FinanceTransaction::create([
+                'tipe' => 'pemasukan',
+                'nominal' => $totalPrice,
+                'kategori' => 'Penjualan',
+                'catatan' => "Pembayaran lunas pesanan {$order->kode_pesanan}",
+                'tanggal' => now()->toDateString(),
+                'order_id' => $order->id,
+            ]);
+        }
+
         $order->saveQuietly();
 
         return $this->success(
             new OrderResource($order->fresh(['items.product', 'customer'])),
-            'Bukti pembayaran berhasil diunggah. Admin toko akan segera memverifikasi pesanan Anda.'
+            'Bukti pembayaran berhasil diunggah dan status pembayaran otomatis lunas.'
         );
     }
 }
