@@ -48,57 +48,97 @@ class DatabaseSeeder extends Seeder
         // 2. Categories
         // ═══════════════════════════════════════
         $categories = [
-            'Roti Sourdough & Artisan' => Category::firstOrCreate(['slug' => 'roti-artisan'], ['name' => 'Roti Sourdough & Artisan', 'description' => 'Roti fermentasi lambat 24 jam dengan ragi alami']),
-            'Donat Kentang' => Category::firstOrCreate(['slug' => 'donat-kentang'], ['name' => 'Donat Kentang', 'description' => 'Donat empuk kenyal dari kentang kukus lokal Malang']),
-            'Pastry & Viennoiserie' => Category::firstOrCreate(['slug' => 'pastry'], ['name' => 'Pastry & Viennoiserie', 'description' => 'Pastry renyah berlapis mentega murni']),
-            'Hampers & Gift' => Category::firstOrCreate(['slug' => 'hampers'], ['name' => 'Hampers & Gift', 'description' => 'Kotak hantaran kue kering wisman spesial']),
+            'Roti Manis' => Category::firstOrCreate(['slug' => 'roti-manis'], ['name' => 'Roti Manis', 'description' => 'Aneka varian roti manis lembut hangat khas Erles Bakery']),
+            'Donat' => Category::firstOrCreate(['slug' => 'donat'], ['name' => 'Donat', 'description' => 'Donat empuk kenyal dari resep rumahan dengan aneka taburan dan topping']),
         ];
 
         // ═══════════════════════════════════════
-        // 3. Products (6 Produk Asli Erles Bakery)
+        // 3. Products (Varian Asli Erles Bakery)
         // ═══════════════════════════════════════
         $productDefs = collect([
             [
-                'nama' => 'Sourdough Country Boule',
-                'harga' => 45000,
-                'kategori' => 'Roti Sourdough & Artisan',
-                'stok' => 30,
-                'deskripsi' => 'Kerak keemasan renyah berongga lembut hasil fermentasi alami 24 jam dengan ragi starter khas dapur Bu Erni.',
-            ],
-            [
-                'nama' => 'Olive & Rosemary Ciabatta',
-                'harga' => 32000,
-                'kategori' => 'Roti Sourdough & Artisan',
-                'stok' => 25,
-                'deskripsi' => 'Roti klasik Italia dengan kelembapan tinggi, irisan buah zaitun hitam, dan aroma rosemary segar.',
-            ],
-            [
-                'nama' => 'French Baguette Tradisi',
-                'harga' => 28000,
-                'kategori' => 'Roti Sourdough & Artisan',
-                'stok' => 20,
-                'deskripsi' => 'Baguette renyah autentik dengan remah airy dan kerak garing, dipanggang sempurna setiap subuh.',
-            ],
-            [
-                'nama' => 'Donat Kentang Gula Halus',
-                'harga' => 8000,
-                'kategori' => 'Donat Kentang',
+                'nama' => 'Roti Abon',
+                'harga' => 5000,
+                'kategori' => 'Roti Manis',
                 'stok' => 50,
-                'deskripsi' => 'Donat kentang legendaris dari kentang kukus lokal Malang, tekstur lembut empuk bertabur gula dingin.',
+                'deskripsi' => 'Roti manis empuk bertabur abon sapi gurih melimpah dengan olesan saus manis khas bakery.',
             ],
             [
-                'nama' => 'Donat Coklat Almond Panggang',
-                'harga' => 12000,
-                'kategori' => 'Donat Kentang',
+                'nama' => 'Roti Sosis',
+                'harga' => 5000,
+                'kategori' => 'Roti Manis',
+                'stok' => 50,
+                'deskripsi' => 'Roti lembut dengan isian sosis sapi pilihan berpadu saus gurih favorit sarapan keluarga.',
+            ],
+            [
+                'nama' => 'Roti Keju',
+                'harga' => 5000,
+                'kategori' => 'Roti Manis',
                 'stok' => 40,
-                'deskripsi' => 'Balutan dark chocolate leleh premium bertabur irisan kacang almond iris sangrai renyah gurih.',
+                'deskripsi' => 'Roti manis lembut berisikan keju gurih dengan parutan keju cheddar panggang di atasnya.',
             ],
             [
-                'nama' => 'Hampers Lebaran Deluxe',
-                'harga' => 350000,
-                'kategori' => 'Hampers & Gift',
+                'nama' => 'Roti Pizza',
+                'harga' => 5000,
+                'kategori' => 'Roti Manis',
+                'stok' => 40,
+                'deskripsi' => 'Roti mini pizza dengan topping potongan sosis, saus tomat rempah, dan taburan keju leleh.',
+            ],
+            [
+                'nama' => 'Roti Sakura',
+                'harga' => 5000,
+                'kategori' => 'Roti Manis',
+                'stok' => 35,
+                'deskripsi' => 'Roti manis klasik dibentuk kelopak bunga sakura yang cantik dan harum mentega segar.',
+            ],
+            [
+                'nama' => 'Roti Kepang',
+                'harga' => 5000,
+                'kategori' => 'Roti Manis',
+                'stok' => 35,
+                'deskripsi' => 'Roti kepang tradisional dengan olesan mentega manis dan taburan gula pasir renyah.',
+            ],
+            [
+                'nama' => 'Roti Pisang Coklat',
+                'harga' => 5000,
+                'kategori' => 'Roti Manis',
+                'stok' => 50,
+                'deskripsi' => 'Kombinasi klasik pisang raja manis alami dan lelehan cokelat legit berbalut adonan roti empuk.',
+            ],
+            [
+                'nama' => 'Roti Pisang Coklat Keju',
+                'harga' => 6000,
+                'kategori' => 'Roti Manis',
+                'stok' => 45,
+                'deskripsi' => 'Perpaduan sempurna pisang manis, lelehan cokelat lumer, dan keju cheddar gurih dalam satu roti.',
+            ],
+            [
+                'nama' => 'Roti Abon 1 Loyang (40 x 40)',
+                'harga' => 60000,
+                'kategori' => 'Roti Manis',
                 'stok' => 15,
-                'deskripsi' => 'Kotak eksklusif velvet gold berisi 3 toples kue kering butter Wisman legendaris & kartu ucapan kustom.',
+                'deskripsi' => 'Porsi besar 1 loyang ukuran 40 × 40 cm penuh abon sapi tebal, sangat cocok untuk hantaran dan acara keluarga.',
+            ],
+            [
+                'nama' => 'Donuts Biasa',
+                'harga' => 2500,
+                'kategori' => 'Donat',
+                'stok' => 60,
+                'deskripsi' => 'Donat kentang tradisional super empuk dan kenyal, ditaburi gula halus dingin yang manis pas.',
+            ],
+            [
+                'nama' => 'Donuts Meses Coklat',
+                'harga' => 5000,
+                'kategori' => 'Donat',
+                'stok' => 50,
+                'deskripsi' => 'Donat empuk dengan olesan krim manis lembut dan taburan meses cokelat tebal yang melimpah.',
+            ],
+            [
+                'nama' => 'Donuts Premium',
+                'harga' => 7000,
+                'kategori' => 'Donat',
+                'stok' => 40,
+                'deskripsi' => 'Donat kentang premium bertekstur lembut istimewa dengan pilihan topping glaze artisan cokelat dan keju.',
             ],
         ]);
 
@@ -122,8 +162,8 @@ class DatabaseSeeder extends Seeder
                 'status' => 'pending',
                 'catatan' => 'Tolong dikemas rapi untuk sarapan keluarga',
                 'items' => [
-                    ['product_index' => 0, 'qty' => 1], // Sourdough
-                    ['product_index' => 3, 'qty' => 5], // Donat Kentang x5
+                    ['product_index' => 0, 'qty' => 4], // Roti Abon x4
+                    ['product_index' => 9, 'qty' => 10], // Donuts Biasa x10
                 ],
             ],
             [
@@ -134,8 +174,8 @@ class DatabaseSeeder extends Seeder
                 'status' => 'processing',
                 'catatan' => 'Kirim via kurir instan Malang',
                 'items' => [
-                    ['product_index' => 1, 'qty' => 1], // Ciabatta
-                    ['product_index' => 4, 'qty' => 4], // Donat Coklat x4
+                    ['product_index' => 1, 'qty' => 5], // Roti Sosis x5
+                    ['product_index' => 10, 'qty' => 5], // Donuts Meses Coklat x5
                 ],
             ],
             [
@@ -146,8 +186,8 @@ class DatabaseSeeder extends Seeder
                 'status' => 'completed',
                 'catatan' => 'Ambil langsung di dapur jam 07.00 pagi',
                 'items' => [
-                    ['product_index' => 2, 'qty' => 2], // Baguette x2
-                    ['product_index' => 3, 'qty' => 6], // Donat Kentang x6
+                    ['product_index' => 7, 'qty' => 6], // Roti Pisang Coklat Keju x6
+                    ['product_index' => 9, 'qty' => 10], // Donuts Biasa x10
                 ],
             ],
             [
@@ -156,9 +196,9 @@ class DatabaseSeeder extends Seeder
                 'alamat' => 'Jl. Kalpataru No. 45, Lowokwaru, Malang',
                 'tanggal_ambil' => now()->addDays(2)->toDateString(),
                 'status' => 'pending',
-                'catatan' => 'Sertakan kartu ucapan kustom',
+                'catatan' => 'Untuk konsumsi acara rapat keluarga',
                 'items' => [
-                    ['product_index' => 5, 'qty' => 1], // Hampers Deluxe
+                    ['product_index' => 8, 'qty' => 1], // Roti Abon 1 Loyang (40 x 40)
                 ],
             ],
         ];
