@@ -62,6 +62,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 50,
                 'deskripsi' => 'Roti manis empuk bertabur abon sapi gurih melimpah dengan olesan saus manis khas bakery.',
+                'gambar' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Sosis',
@@ -69,6 +70,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 50,
                 'deskripsi' => 'Roti lembut dengan isian sosis sapi pilihan berpadu saus gurih favorit sarapan keluarga.',
+                'gambar' => 'https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Keju',
@@ -76,6 +78,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 40,
                 'deskripsi' => 'Roti manis lembut berisikan keju gurih dengan parutan keju cheddar panggang di atasnya.',
+                'gambar' => 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Pizza',
@@ -83,6 +86,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 40,
                 'deskripsi' => 'Roti mini pizza dengan topping potongan sosis, saus tomat rempah, dan taburan keju leleh.',
+                'gambar' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Sakura',
@@ -90,6 +94,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 35,
                 'deskripsi' => 'Roti manis klasik dibentuk kelopak bunga sakura yang cantik dan harum mentega segar.',
+                'gambar' => 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Kepang',
@@ -97,6 +102,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 35,
                 'deskripsi' => 'Roti kepang tradisional dengan olesan mentega manis dan taburan gula pasir renyah.',
+                'gambar' => 'https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Pisang Coklat',
@@ -104,6 +110,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 50,
                 'deskripsi' => 'Kombinasi klasik pisang raja manis alami dan lelehan cokelat legit berbalut adonan roti empuk.',
+                'gambar' => 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Pisang Coklat Keju',
@@ -111,6 +118,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 45,
                 'deskripsi' => 'Perpaduan sempurna pisang manis, lelehan cokelat lumer, dan keju cheddar gurih dalam satu roti.',
+                'gambar' => 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Roti Abon 1 Loyang (40 x 40)',
@@ -118,6 +126,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Roti Manis',
                 'stok' => 15,
                 'deskripsi' => 'Porsi besar 1 loyang ukuran 40 × 40 cm penuh abon sapi tebal, sangat cocok untuk hantaran dan acara keluarga.',
+                'gambar' => 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Donuts Biasa',
@@ -125,6 +134,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Donat',
                 'stok' => 60,
                 'deskripsi' => 'Donat kentang tradisional super empuk dan kenyal, ditaburi gula halus dingin yang manis pas.',
+                'gambar' => 'https://images.unsplash.com/photo-1551106652-a5bcf4b29ab6?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Donuts Meses Coklat',
@@ -132,6 +142,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Donat',
                 'stok' => 50,
                 'deskripsi' => 'Donat empuk dengan olesan krim manis lembut dan taburan meses cokelat tebal yang melimpah.',
+                'gambar' => 'https://images.unsplash.com/photo-1527515862127-a4fc05baf7a5?auto=format&fit=crop&w=700&q=80',
             ],
             [
                 'nama' => 'Donuts Premium',
@@ -139,6 +150,7 @@ class DatabaseSeeder extends Seeder
                 'kategori' => 'Donat',
                 'stok' => 40,
                 'deskripsi' => 'Donat kentang premium bertekstur lembut istimewa dengan pilihan topping glaze artisan cokelat dan keju.',
+                'gambar' => 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=700&q=80',
             ],
         ]);
 
