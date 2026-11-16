@@ -90,6 +90,9 @@ services:
     image: devlikeapro/waha
     container_name: erles_waha
     restart: unless-stopped
+    profiles:
+      - waha
+      - full
     ports:
       - "3000:3000"
     environment:
