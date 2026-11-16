@@ -75,10 +75,15 @@ class OrderController extends Controller
                 $validated['alamat'] ?? null
             );
 
+            // Nama pesanan harus selalu sama dengan nama pemesan pertama yang terdaftar untuk nomor ini
+            $customerName = (!empty($customer->name) && $customer->name !== 'Pelanggan')
+                ? $customer->name
+                : $validated['customer_name'];
+
             $order = Order::create([
                 'customer_id' => $customer->id,
                 'kode_pesanan' => Order::generateKodePesanan(),
-                'customer_name' => $validated['customer_name'],
+                'customer_name' => $customerName,
                 'customer_phone' => $validated['customer_phone'],
                 'alamat' => $validated['alamat'] ?? null,
                 'catatan' => $validated['catatan'] ?? null,
