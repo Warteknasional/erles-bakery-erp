@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
         $productDefs = collect([
             [
                 'nama' => 'Roti Abon',
-                'harga' => 5000,
+                'harga' => 7500,
                 'kategori' => 'Roti Manis',
                 'stok' => 50,
                 'deskripsi' => 'Roti manis empuk bertabur abon sapi gurih melimpah dengan olesan saus manis khas bakery.',
@@ -66,7 +66,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'nama' => 'Roti Sosis',
-                'harga' => 5000,
+                'harga' => 6000,
                 'kategori' => 'Roti Manis',
                 'stok' => 50,
                 'deskripsi' => 'Roti lembut dengan isian sosis sapi pilihan berpadu saus gurih favorit sarapan keluarga.',
@@ -74,7 +74,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'nama' => 'Roti Keju',
-                'harga' => 5000,
+                'harga' => 5500,
                 'kategori' => 'Roti Manis',
                 'stok' => 40,
                 'deskripsi' => 'Roti manis lembut berisikan keju gurih dengan parutan keju cheddar panggang di atasnya.',
@@ -82,7 +82,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'nama' => 'Roti Pizza',
-                'harga' => 5000,
+                'harga' => 7000,
                 'kategori' => 'Roti Manis',
                 'stok' => 40,
                 'deskripsi' => 'Roti mini pizza dengan topping potongan sosis, saus tomat rempah, dan taburan keju leleh.',
@@ -90,7 +90,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'nama' => 'Roti Sakura',
-                'harga' => 5000,
+                'harga' => 4500,
                 'kategori' => 'Roti Manis',
                 'stok' => 35,
                 'deskripsi' => 'Roti manis klasik dibentuk kelopak bunga sakura yang cantik dan harum mentega segar.',
@@ -98,7 +98,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'nama' => 'Roti Kepang',
-                'harga' => 5000,
+                'harga' => 4000,
                 'kategori' => 'Roti Manis',
                 'stok' => 35,
                 'deskripsi' => 'Roti kepang tradisional dengan olesan mentega manis dan taburan gula pasir renyah.',
@@ -114,7 +114,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'nama' => 'Roti Pisang Coklat Keju',
-                'harga' => 6000,
+                'harga' => 6500,
                 'kategori' => 'Roti Manis',
                 'stok' => 45,
                 'deskripsi' => 'Perpaduan sempurna pisang manis, lelehan cokelat lumer, dan keju cheddar gurih dalam satu roti.',
@@ -146,7 +146,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'nama' => 'Donuts Premium',
-                'harga' => 7000,
+                'harga' => 7500,
                 'kategori' => 'Donat',
                 'stok' => 40,
                 'deskripsi' => 'Donat kentang premium bertekstur lembut istimewa dengan pilihan topping glaze artisan cokelat dan keju.',

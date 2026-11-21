@@ -33,6 +33,33 @@ Route::middleware('throttle:public-api')->group(function () {
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{idOrSlug}', [ProductController::class, 'show']);
     Route::get('/orders/track/{idOrCode}', [OrderController::class, 'show']);
+    Route::get('/customers/lookup', function (\Illuminate\Http\Request $request) {
+        $phone = $request->query('phone');
+        if (!$phone) {
+            return response()->json(['success' => false, 'message' => 'Phone parameter required.'], 400);
+        }
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+        $customer = \App\Models\Customer::where('phone', $phone)
+            ->orWhere('phone', $cleanPhone)
+            ->first();
+
+        if ($customer && !empty($customer->name)) {
+            return response()->json([
+                'success' => true,
+                'found' => true,
+                'data' => [
+                    'name' => $customer->name,
+                    'phone' => $customer->phone,
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'found' => false,
+            'data' => null,
+        ]);
+    });
 });
 
 // Public Order Placement & Payment Proof Upload
