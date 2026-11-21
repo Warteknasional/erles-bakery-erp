@@ -67,7 +67,21 @@ class OrderController extends Controller
 
         $order = DB::transaction(function () use ($validated, $request) {
             $productIds = collect($validated['items'])->pluck('product_id')->unique();
-            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+            $products = Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id');
+
+            // Validasi kecukupan stok untuk setiap produk yang dipesan
+            foreach ($validated['items'] as $itemData) {
+                $product = $products->get($itemData['product_id']);
+                if (!$product) {
+                    continue;
+                }
+                $requestedQty = (int) $itemData['qty'];
+                if ($product->stok < $requestedQty) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items' => ["Stok produk '{$product->nama}' tidak mencukupi (tersisa {$product->stok} pcs, dipesan {$requestedQty} pcs)."],
+                    ]);
+                }
+            }
 
             $customer = \App\Models\Customer::findOrCreateByPhone(
                 $validated['customer_phone'],
@@ -82,7 +96,6 @@ class OrderController extends Controller
 
             // Periksa jika ada bukti pembayaran yang diunggah langsung (misal data URI atau URL)
             $buktiPembayaran = $validated['bukti_pembayaran'] ?? null;
-            $paymentMethod = strtolower($validated['payment_method'] ?? 'qris');
 
             $order = Order::create([
                 'customer_id' => $customer->id,
@@ -117,39 +130,15 @@ class OrderController extends Controller
                     'unit_price' => $unitPrice,
                     'subtotal' => $subtotal,
                 ]);
+
+                // Kurangi stok produk jadi di etalase
+                $product->decrement('stok', $qty);
             }
 
             $order->total_price = $totalPrice;
-
-            // Jika pelanggan sudah upload bukti pembayaran (QRIS / Transfer Bank), otomatis tandai lunas
-            if (!empty($buktiPembayaran) && in_array($paymentMethod, ['qris', 'transfer'])) {
-                $order->payment_status = 'paid';
-                $order->paid_amount = $totalPrice;
-
-                // Catat ke riwayat payments & kas masuk
-                $payment = \App\Models\Payment::create([
-                    'order_id' => $order->id,
-                    'nominal' => $totalPrice,
-                    'metode' => $paymentMethod,
-                    'tipe' => 'lunas',
-                    'tanggal' => now()->toDateString(),
-                    'catatan' => "Pembayaran otomatis via {$paymentMethod} dengan bukti transfer",
-                    'bukti_bayar' => $buktiPembayaran,
-                ]);
-
-                \App\Models\FinanceTransaction::create([
-                    'tipe' => 'pemasukan',
-                    'nominal' => $totalPrice,
-                    'kategori' => 'Penjualan',
-                    'catatan' => "Pembayaran lunas ({$paymentMethod}) pesanan {$order->kode_pesanan}",
-                    'tanggal' => now()->toDateString(),
-                    'order_id' => $order->id,
-                    'payment_id' => $payment->id,
-                ]);
-            } else {
-                $order->payment_status = 'unpaid';
-                $order->paid_amount = 0;
-            }
+            // Status pembayaran tetap unpaid (Menunggu Verifikasi Admin) meskipun bukti sudah diunggah
+            $order->payment_status = 'unpaid';
+            $order->paid_amount = 0;
 
             $order->saveQuietly();
 
@@ -215,6 +204,17 @@ class OrderController extends Controller
 
             // Auto-deduct raw material ingredients when order enters production (processing / ready / completed)
             $normalizedNew = Order::normalizeStatus($newStatus);
+            $normalizedOld = Order::normalizeStatus($oldStatus);
+
+            if ($normalizedNew === 'cancelled' && $normalizedOld !== 'cancelled') {
+                $order->loadMissing('items.product');
+                foreach ($order->items as $item) {
+                    if ($item->product) {
+                        $item->product->increment('stok', (int) $item->qty);
+                    }
+                }
+            }
+
             if (in_array($normalizedNew, ['processing', 'ready', 'completed'], true)) {
                 $deductedSummary = $order->deductIngredientsIfNeeded();
                 if (!empty($deductedSummary)) {
@@ -274,11 +274,21 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order, $request) {
+            $normalizedOld = Order::normalizeStatus($order->status);
             $reason = $request->input('alasan', $request->input('catatan', 'Dibatalkan oleh admin'));
             $order->update([
                 'status' => Order::STATUS_CANCELLED,
                 'catatan' => trim($order->catatan . "\n[Dibatalkan] " . $reason),
             ]);
+
+            if ($normalizedOld !== 'cancelled') {
+                $order->loadMissing('items.product');
+                foreach ($order->items as $item) {
+                    if ($item->product) {
+                        $item->product->increment('stok', (int) $item->qty);
+                    }
+                }
+            }
         });
 
         $order->load(['items.product', 'customer']);
@@ -337,38 +347,11 @@ class OrderController extends Controller
         }
 
         $order->bukti_pembayaran = $proofUrl;
-
-        // Otomatis tandai pesanan sebagai lunas jika bukti pembayaran telah diunggah
-        if ($order->payment_status !== 'paid') {
-            $totalPrice = (float) $order->total_price;
-            $order->payment_status = 'paid';
-            $order->paid_amount = $totalPrice;
-
-            \App\Models\Payment::create([
-                'order_id' => $order->id,
-                'nominal' => $totalPrice,
-                'metode' => 'transfer',
-                'tipe' => 'lunas',
-                'tanggal' => now()->toDateString(),
-                'catatan' => 'Pembayaran otomatis lunas melalui upload bukti pembayaran',
-                'bukti_bayar' => $proofUrl,
-            ]);
-
-            \App\Models\FinanceTransaction::create([
-                'tipe' => 'pemasukan',
-                'nominal' => $totalPrice,
-                'kategori' => 'Penjualan',
-                'catatan' => "Pembayaran lunas pesanan {$order->kode_pesanan}",
-                'tanggal' => now()->toDateString(),
-                'order_id' => $order->id,
-            ]);
-        }
-
         $order->saveQuietly();
 
         return $this->success(
             new OrderResource($order->fresh(['items.product', 'customer'])),
-            'Bukti pembayaran berhasil diunggah dan status pembayaran otomatis lunas.'
+            'Bukti pembayaran berhasil diunggah dan sedang menunggu verifikasi admin.'
         );
     }
 }

@@ -130,7 +130,7 @@ class PaymentController extends Controller
                 'tipe' => $tipe,
                 'tanggal' => $paymentDate,
                 'catatan' => $request->input('catatan'),
-                'bukti_bayar' => $request->input('bukti_bayar'),
+                'bukti_bayar' => $request->input('bukti_bayar') ?? $order->bukti_pembayaran,
             ]);
 
             // Auto-update order payment status & paid amount

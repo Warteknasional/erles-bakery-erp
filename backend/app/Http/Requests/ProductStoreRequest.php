@@ -19,9 +19,10 @@ class ProductStoreRequest extends FormRequest
             'nama' => ['required', 'string', 'max:255', 'unique:products,nama'],
             'deskripsi' => ['nullable', 'string'],
             'harga' => ['required', 'numeric', 'min:0'],
+            'hpp' => ['nullable', 'numeric', 'min:0'],
             'stok' => ['nullable', 'integer', 'min:0'],
             'kategori' => ['nullable', 'required_without:category_id', 'string', 'max:100'],
-            'gambar' => ['nullable', 'string', 'max:500'],
+            'gambar' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

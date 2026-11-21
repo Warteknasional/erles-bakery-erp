@@ -158,6 +158,7 @@ class DatabaseSeeder extends Seeder
             $slug = Str::slug($data['nama']);
             $data['slug'] = $slug;
             $data['is_active'] = true;
+            $data['hpp'] = round(((float) $data['harga']) * 0.55);
             $data['category_id'] = $categories[$data['kategori']]?->id;
             return Product::updateOrCreate(['slug' => $slug], $data);
         });

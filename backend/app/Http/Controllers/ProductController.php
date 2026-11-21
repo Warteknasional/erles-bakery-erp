@@ -90,6 +90,13 @@ class ProductController extends Controller
         $data['slug'] = $slug;
         $data['stok'] = $data['stok'] ?? 0;
         $data['is_active'] = $data['is_active'] ?? true;
+        $data['hpp'] = isset($data['hpp']) && $data['hpp'] !== ''
+            ? (float) $data['hpp']
+            : round(((float) $data['harga']) * 0.55);
+
+        if (!empty($data['gambar'])) {
+            $data['gambar'] = $this->resolveProductImage($data['gambar'], $slug);
+        }
 
         if (!empty($data['category_id']) && empty($data['kategori'])) {
             $cat = \App\Models\Category::find($data['category_id']);
@@ -163,12 +170,40 @@ class ProductController extends Controller
             $data['category_id'] = $cat->id;
         }
 
+        if (array_key_exists('gambar', $data) && !empty($data['gambar'])) {
+            $data['gambar'] = $this->resolveProductImage($data['gambar'], $data['slug'] ?? $product->slug);
+        }
+
         $product->update($data);
 
         return $this->success(
             new ProductResource($product->load('category')),
             'Produk berhasil diperbarui.'
         );
+    }
+
+    /**
+     * Resolve product image: if a base64 data URI is provided, store it in public disk and return URL.
+     */
+    private function resolveProductImage(string $gambar, string $slug): string
+    {
+        if (preg_match('/^data:image\/(\w+);base64,/', $gambar, $type)) {
+            $rawData = substr($gambar, strpos($gambar, ',') + 1);
+            $ext = strtolower($type[1]);
+            if ($ext === 'jpeg') {
+                $ext = 'jpg';
+            }
+            if (in_array($ext, ['jpg', 'png', 'webp', 'gif'], true)) {
+                $decoded = base64_decode($rawData);
+                if ($decoded !== false) {
+                    $filename = 'prod_' . $slug . '_' . time() . '.' . $ext;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put('products/' . $filename, $decoded);
+                    return url('/storage/products/' . $filename);
+                }
+            }
+        }
+
+        return $gambar;
     }
 
     /**

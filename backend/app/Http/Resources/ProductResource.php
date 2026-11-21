@@ -21,6 +21,7 @@ class ProductResource extends JsonResource
             'slug' => $this->slug,
             'deskripsi' => $this->deskripsi,
             'harga' => (float) $this->harga,
+            'hpp' => $this->hpp !== null ? (float) $this->hpp : (float) round(((float) $this->harga) * 0.55),
             'stok' => (int) $this->stok,
             'kategori' => $this->kategori,
             'gambar' => $this->gambar,

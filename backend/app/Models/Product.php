@@ -19,6 +19,7 @@ class Product extends Model
         'slug',
         'deskripsi',
         'harga',
+        'hpp',
         'stok',
         'kategori',
         'gambar',
@@ -32,6 +33,7 @@ class Product extends Model
     {
         return [
             'harga' => 'decimal:2',
+            'hpp' => 'decimal:2',
             'stok' => 'integer',
             'is_active' => 'boolean',
         ];
